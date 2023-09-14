@@ -1,0 +1,13 @@
+{
+	"nodes":[
+		{"id":"a1a7b74b233472e8","x":-540,"y":-260,"width":320,"height":220,"type":"text","text":"``` java\npublic class Token() {\n\tString type;\n\tString val;\n\tint lineNum;\n}\n```\n"},
+		{"id":"cc63886aa3fd88d2","x":-60,"y":-360,"width":180,"height":60,"type":"text","text":"source code"},
+		{"id":"da6720f73c031b62","x":-77,"y":-140,"width":215,"height":60,"type":"text","text":"`ArrayList<Tokens>`"},
+		{"id":"8ab9cd85e0d29874","x":-76,"y":40,"width":214,"height":60,"type":"text","text":"`Node compUnit`"},
+		{"id":"87d7dadddb906fb1","x":-540,"y":40,"width":320,"height":160,"type":"text","text":"``` java\npublic class Node() {\n\tString type;\n\t// children\n}\n```"}
+	],
+	"edges":[
+		{"id":"84f5ce24524796a3","fromNode":"cc63886aa3fd88d2","fromSide":"bottom","toNode":"da6720f73c031b62","toSide":"top","label":"Lexer"},
+		{"id":"182a1223470fb067","fromNode":"da6720f73c031b62","fromSide":"bottom","toNode":"8ab9cd85e0d29874","toSide":"top","label":"Parser"}
+	]
+}

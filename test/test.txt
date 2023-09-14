@@ -1,0 +1,54 @@
+const int N = 6;
+int partition(int arr[], int low, int high) {
+    int key; // do something
+    key = arr[low];
+    while (low < high) {
+        while (low < high && arr[high] >= key) {
+            high = high - 1; // do something
+        }
+        if (low < high) {
+            arr[low] = arr[high];
+            low = low + 1;
+        }
+        while (low < high && arr[low] <= key) {
+            low = low + 1;
+        }
+        if (low < high) {
+            arr[high] = arr[low];
+            high = high - 1;
+        }
+    }
+    arr[low] = key;
+    return low;
+} // do something
+/**/
+/*do something*/
+/* "*/"*/
+void quick_sort(int arr[], int start, int end) {
+    int pos;
+    if (start < end) {
+        pos = partition(arr, start, end);
+        quick_sort(arr, start, pos - 1);
+        quick_sort(arr, pos + 1, end);
+    }
+    return;
+}
+int main() {
+    int i;
+    int arr[N] = {32, 12, 7, 78, 23, 45};
+    printf("before \n");
+    i = 0;
+    while (i < N) {
+        printf("%d\t", arr[i]);
+        i = i + 1;
+    }
+    quick_sort(arr, 0, N - 1);
+    printf("\n after \n");
+    i = 0;
+    while (i < N) {
+        printf("%d\t", arr[i]);
+        i = i + 1;
+    }
+    printf("\n");
+    return 0;
+}
