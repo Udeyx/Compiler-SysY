@@ -45,7 +45,12 @@ int b = 5, c;
 一个`token`中有`String val`, `String type`, `int lineNum`
 
 ## 语法分析
+
 - 每个语法成分
+- 在还未进行到错误处理时，先用`assert`来进行错误的管理
+- 进行分支判断时尽量用`preview()`，而不是`next()`
+- 要在每个有实际意义的`parseXxx()`函数开始时调用`iter.next()`
+- 每个`parseXxx()`函数都不要多读，否则要用`back()`回退
 
 ## 错误处理
 

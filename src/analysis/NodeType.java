@@ -33,5 +33,6 @@ public enum NodeType {
     UNARYEXP,
     UNARYOP,
     VARDECL,
-    VARDEF
+    VARDEF,
+    TERMINATOR
 }

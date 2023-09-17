@@ -1,15 +1,13 @@
 import analysis.Lexer;
 import analysis.Token;
-import analysis.TokenType;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Compiler {
     public static void main(String[] args) {
-        String filePath = "test/test.txt";
+        String filePath = "testfile.txt";
         File file = new File(filePath);
         ArrayList<String> lines = new ArrayList<>();
         try {
@@ -22,7 +20,15 @@ public class Compiler {
             System.out.println("fuck");
         }
         ArrayList<Token> tokens = new Lexer().tokenize(lines);
-        tokens.forEach(System.out::println);
-
+        try {
+            PrintStream ps = new PrintStream(new File("output.txt"));
+            PrintStream console = System.out;
+            System.setOut(ps);
+            tokens.forEach(System.out::println);
+            System.setOut(console);
+        } catch (IOException e) {
+            System.out.println("fuck");
+        }
+//        tokens.forEach(System.out::println);
     }
 }
