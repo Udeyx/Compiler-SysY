@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Compiler {
     public static void main(String[] args) {
-        String filePath = "test/test.txt";
+        String filePath = "test/test1.txt";
         File file = new File(filePath);
         ArrayList<String> lines = new ArrayList<>();
         try {
@@ -30,5 +30,14 @@ public class Compiler {
 //            System.out.println("fuck");
 //        }
         CompUnit compUnit = new Parser(new Iter(tokens)).parseCompUnit();
+        try {
+            PrintStream ps = new PrintStream(new File("output.txt"));
+            PrintStream console = System.out;
+            System.setOut(ps);
+            compUnit.traverse();
+            System.setOut(console);
+        } catch (IOException e) {
+            System.out.println("fuck");
+        }
     }
 }

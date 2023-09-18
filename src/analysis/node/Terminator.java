@@ -11,4 +11,9 @@ public class Terminator extends Node {
         super(NodeType.TERMINATOR);
         this.val = val;
     }
+
+    @Override
+    public String toString() {
+        return val.toString();
+    }
 }

@@ -5,6 +5,6 @@ import analysis.NodeType;
 
 public class BType extends Node {
     public BType() {
-        super(NodeType.BType);
+        super(NodeType.BTYPE);
     }
 }

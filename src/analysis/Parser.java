@@ -3,6 +3,8 @@ package analysis;
 import analysis.node.*;
 import analysis.node.Number;
 
+import java.util.ArrayList;
+
 public class Parser {
     private final Iter iter;
 
@@ -376,75 +378,92 @@ public class Parser {
     }
 
     private MulExp parseMulExp() {
-        MulExp mulExp = new MulExp();
-        mulExp.addChild(parseUnaryExp());
+        ArrayList<Node> raw = new ArrayList<>();
+        raw.add(parseUnaryExp());
         while (iter.preview(1).getType().equals(TokenType.MULT)
                 || iter.preview(1).getType().equals(TokenType.DIV)
                 || iter.preview(1).getType().equals(TokenType.MOD)) {
-            mulExp.addChild(new Terminator(iter.next())); // add the '*' '/' '%'
-            mulExp.addChild(parseUnaryExp());
+            raw.add(new Terminator(iter.next())); // add the '*' '/' '%'
+            raw.add(parseUnaryExp());
         }
-        return mulExp;
+        return (MulExp) toLeftRecursion(raw, NodeType.MULEXP);
     }
 
     private AddExp parseAddExp() {
-        AddExp addExp = new AddExp();
-        addExp.addChild(parseMulExp());
+        ArrayList<Node> raw = new ArrayList<>();
+        raw.add(parseMulExp());
         while (iter.preview(1).getType().equals(TokenType.PLUS)
                 || iter.preview(1).getType().equals(TokenType.MINU)) {
-            addExp.addChild(new Terminator(iter.next())); // add the '+' '-'
-            addExp.addChild(parseMulExp());
+            raw.add(new Terminator(iter.next())); // add the '+' '-'
+            raw.add(parseMulExp());
         }
-        return addExp;
+        return (AddExp) toLeftRecursion(raw, NodeType.ADDEXP);
     }
 
     private RelExp parseRelExp() {
-        RelExp relExp = new RelExp();
-        relExp.addChild(parseAddExp());
+        ArrayList<Node> raw = new ArrayList<>();
+        raw.add(parseAddExp());
         while (iter.preview(1).getType().equals(TokenType.LSS)
                 || iter.preview(1).getType().equals(TokenType.GRE)
                 || iter.preview(1).getType().equals(TokenType.LEQ)
                 || iter.preview(1).getType().equals(TokenType.GEQ)) {
-            relExp.addChild(new Terminator(iter.next())); // add the '<' '>' '<=' '>='
-            relExp.addChild(parseAddExp());
+            raw.add(new Terminator(iter.next())); // add the '<' '>' '<=' '>='
+            raw.add(parseAddExp());
         }
-        return relExp;
+        return (RelExp) toLeftRecursion(raw, NodeType.RELEXP);
     }
 
     private EqExp parseEqExp() {
-        EqExp eqExp = new EqExp();
-        eqExp.addChild(parseRelExp());
+        ArrayList<Node> raw = new ArrayList<>();
+        raw.add(parseRelExp());
         while (iter.preview(1).getType().equals(TokenType.EQL)
                 || iter.preview(1).getType().equals(TokenType.NEQ)) {
-            eqExp.addChild(new Terminator(iter.next())); // add the "==" "!="
-            eqExp.addChild(parseRelExp());
+            raw.add(new Terminator(iter.next())); // add the "==" "!="
+            raw.add(parseRelExp());
         }
-        return eqExp;
+        return (EqExp) toLeftRecursion(raw, NodeType.EQEXP);
     }
 
     private LAndExp parseLAndExp() {
-        LAndExp lAndExp = new LAndExp();
-        lAndExp.addChild(parseEqExp());
+        ArrayList<Node> raw = new ArrayList<>();
+        raw.add(parseEqExp());
         while (iter.preview(1).getType().equals(TokenType.AND)) {
-            lAndExp.addChild(new Terminator(iter.next())); // add the "&&"
-            lAndExp.addChild(parseEqExp());
+            raw.add(new Terminator(iter.next())); // add the "&&"
+            raw.add(parseEqExp());
         }
-        return lAndExp;
+        return (LAndExp) toLeftRecursion(raw, NodeType.LANDEXP);
     }
 
     private LOrExp parseLOrExp() {
-        LOrExp lOrExp = new LOrExp();
-        lOrExp.addChild(parseLAndExp());
+        ArrayList<Node> raw = new ArrayList<>();
+        raw.add(parseLAndExp());
         while (iter.preview(1).getType().equals(TokenType.OR)) {
-            lOrExp.addChild(new Terminator(iter.next())); // add the "||"
-            lOrExp.addChild(parseLAndExp());
+            raw.add(new Terminator(iter.next())); // add the "||"
+            raw.add(parseLAndExp());
         }
-        return lOrExp;
+        return (LOrExp) toLeftRecursion(raw, NodeType.LOREXP);
     }
 
     private ConstExp parseConstExp() {
         ConstExp constExp = new ConstExp();
         constExp.addChild(parseAddExp());
         return constExp;
+    }
+
+    private Node toLeftRecursion(ArrayList<Node> raw, NodeType type) {
+        Node fixed = switch (type) {
+            case MULEXP -> new MulExp();
+            case ADDEXP -> new AddExp();
+            case RELEXP -> new RelExp();
+            case EQEXP -> new EqExp();
+            case LANDEXP -> new LAndExp();
+            default -> new LOrExp();
+        };
+        fixed.addChild(raw.get(raw.size() - 1)); // add the rightest Node
+        if (raw.size() > 1) {
+            fixed.addChild(0, raw.get(raw.size() - 2));
+            fixed.addChild(0, toLeftRecursion(new ArrayList<>(raw.subList(0, raw.size() - 2)), type));
+        }
+        return fixed;
     }
 }
