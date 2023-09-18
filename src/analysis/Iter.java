@@ -23,17 +23,10 @@ public class Iter {
         return curToken;
     }
 
-    public Token peek() {
-        return curToken;
-    }
 
     public Token preview(int offset) {
         if (pos + offset < tokens.size())
             return tokens.get(pos + offset);
         return null;
-    }
-
-    public void back(int offset) {
-        pos -= offset;
     }
 }
