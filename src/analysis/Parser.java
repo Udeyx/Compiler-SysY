@@ -261,7 +261,7 @@ public class Parser {
             default -> {
                 boolean hasAssign = false;
                 boolean useGetInt = false;
-                for (int i = 0; !iter.preview(i).getType().equals(TokenType.SEMICN); i++) {
+                for (int i = 1; !iter.preview(i).getType().equals(TokenType.SEMICN); i++) {
                     if (iter.preview(i).getType().equals(TokenType.ASSIGN)) {
                         hasAssign = true;
                         if (iter.preview(i + 1).getType().equals(TokenType.GETINTTK))
