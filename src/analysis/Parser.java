@@ -64,6 +64,7 @@ public class Parser {
         ConstDef constDef = new ConstDef();
         constDef.addChild(new Terminator(iter.next())); // add the ident
         while (iter.preview(1).getType().equals(TokenType.LBRACK)) {
+            constDef.addChild(new Terminator(iter.next())); // add the '['
             constDef.addChild(parseConstExp());
             constDef.addChild(new Terminator(iter.next())); // add the ']'
         }

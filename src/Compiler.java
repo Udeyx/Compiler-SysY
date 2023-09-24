@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Compiler {
     public static void main(String[] args) {
-        String filePath = "test/test1.txt";
+        String filePath = "testfile.txt";
         File file = new File(filePath);
         ArrayList<String> lines = new ArrayList<>();
         try {
