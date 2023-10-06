@@ -259,30 +259,27 @@ public class Parser {
                 }
             }
             case LBRACE -> stmt.addChild(parseBlock());
-            default -> {
-                boolean hasAssign = false;
-                boolean useGetInt = false;
-                for (int i = 1; !iter.preview(i).getType().equals(TokenType.SEMICN); i++) {
-                    if (iter.preview(i).getType().equals(TokenType.ASSIGN)) {
-                        hasAssign = true;
-                        if (iter.preview(i + 1).getType().equals(TokenType.GETINTTK))
-                            useGetInt = true;
-                        break;
-                    }
-                }
-                if (hasAssign) {
-                    stmt.addChild(parseLVal());
-                    stmt.addChild(new Terminator(iter.next())); // add the '='
-                    if (useGetInt) {
-                        stmt.addChild(new Terminator(iter.next())); // add the "getint"
-                        stmt.addChild(new Terminator(iter.next())); // add the '('
-                        stmt.addChild(new Terminator(iter.next())); // add the ')'
+            default -> { // only ';' or [exp] ';' or two type of assign
+                if (iter.preview(1).getType().equals(TokenType.SEMICN)) {
+                    stmt.addChild(new Terminator(iter.next())); // add the ';'
+                } else {
+                    int realPos = iter.getPos();
+                    Exp tryExp = parseExp();
+                    if (iter.preview(1).getType().equals(TokenType.ASSIGN)) {
+                        iter.setPos(realPos); // recall !!!
+                        stmt.addChild(parseLVal());
+                        stmt.addChild(new Terminator(iter.next())); // add the '='
+                        if (iter.preview(1).getType().equals(TokenType.GETINTTK)) {
+                            stmt.addChild(new Terminator(iter.next())); // add the "getint"
+                            stmt.addChild(new Terminator(iter.next())); // add the '('
+                            stmt.addChild(new Terminator(iter.next())); // add the ')'
+                        } else {
+                            stmt.addChild(parseExp());
+                        }
                     } else
-                        stmt.addChild(parseExp());
-                } else  // Stmt -> [Exp] ';'
-                    if (!iter.preview(1).getType().equals(TokenType.SEMICN))
-                        stmt.addChild(parseExp());
-                stmt.addChild(new Terminator(iter.next())); // add the ';'
+                        stmt.addChild(tryExp);
+                    stmt.addChild(new Terminator(iter.next())); // add the ';'
+                }
             }
         }
         return stmt;
