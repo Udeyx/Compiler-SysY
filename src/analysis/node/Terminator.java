@@ -19,7 +19,11 @@ public class Terminator extends Node {
         addError(error);
     }
 
-    public ArrayList<Error> check() {
+    public Token getVal() {
+        return val;
+    }
+
+    public void check() {
         if (val.getType().equals(TokenType.STRCON)) {
             String content = val.getVal();
             for (int i = 0; i < content.length(); i++) {
@@ -31,7 +35,8 @@ public class Terminator extends Node {
                 }
             }
         }
-        return super.check();
+        if (!getErrors().isEmpty())
+            System.out.println(getErrors().get(0));
     }
 
     @Override

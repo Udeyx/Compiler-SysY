@@ -29,8 +29,12 @@ public class Node {
         errors.add(error);
     }
 
-    public ArrayList<Error> check() {
+    public ArrayList<Error> getErrors() {
         return errors;
+    }
+
+    public void check() {
+        children.forEach(Node::check);
     }
 
     public void traverse() { // postorder traversal
