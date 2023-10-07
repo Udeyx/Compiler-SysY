@@ -4,6 +4,7 @@ import analysis.node.*;
 import analysis.node.Number;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 
 public class Parser {
     private final Iter iter;
@@ -50,7 +51,7 @@ public class Parser {
             constDecl.addChild(new Terminator(iter.next())); // add the ','
             constDecl.addChild(parseConstDef());
         }
-        constDecl.addChild(new Terminator(iter.next())); // add the ';'
+        constDecl.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
         return constDecl;
     }
 
@@ -66,7 +67,7 @@ public class Parser {
         while (iter.preview(1).getType().equals(TokenType.LBRACK)) {
             constDef.addChild(new Terminator(iter.next())); // add the '['
             constDef.addChild(parseConstExp());
-            constDef.addChild(new Terminator(iter.next())); // add the ']'
+            constDef.addChild(safelyRead(TokenType.RBRACK)); // add the ']'
         }
         constDef.addChild(new Terminator(iter.next())); // add the '='
         constDef.addChild(parseConstInitVal());
@@ -100,7 +101,7 @@ public class Parser {
             varDecl.addChild(new Terminator(iter.next())); // add ','
             varDecl.addChild(parseVarDef());
         }
-        varDecl.addChild(new Terminator(iter.next())); // add ';'
+        varDecl.addChild(safelyRead(TokenType.SEMICN)); // add ';'
         return varDecl;
     }
 
@@ -110,7 +111,7 @@ public class Parser {
         while (iter.preview(1).getType().equals(TokenType.LBRACK)) {
             varDef.addChild(new Terminator(iter.next())); // add the '['
             varDef.addChild(parseConstExp());
-            varDef.addChild(new Terminator(iter.next())); // add the ']'
+            varDef.addChild(safelyRead(TokenType.RBRACK)); // add the ']'
         }
         if (iter.preview(1).getType().equals(TokenType.ASSIGN)) {
             varDef.addChild(new Terminator(iter.next())); // add the '='
@@ -141,9 +142,9 @@ public class Parser {
         funcDef.addChild(parseFuncType());
         funcDef.addChild(new Terminator(iter.next())); // add ident
         funcDef.addChild(new Terminator(iter.next())); // add '('
-        if (!iter.preview(1).getType().equals(TokenType.RPARENT))
+        if (iter.preview(1).getType().equals(TokenType.INTTK))
             funcDef.addChild(parseFuncFParams());
-        funcDef.addChild(new Terminator(iter.next())); // add ')'
+        funcDef.addChild(safelyRead(TokenType.RPARENT)); // add ')'
         funcDef.addChild(parseBlock());
         return funcDef;
     }
@@ -180,11 +181,11 @@ public class Parser {
         funcFParam.addChild(new Terminator(iter.next())); // add the ident
         if (iter.preview(1).getType().equals(TokenType.LBRACK)) {
             funcFParam.addChild(new Terminator(iter.next())); // add the '['
-            funcFParam.addChild(new Terminator(iter.next())); // add the ']'
+            funcFParam.addChild(safelyRead(TokenType.RBRACK)); // add the ']'
             while (iter.preview(1).getType().equals(TokenType.LBRACK)) {
                 funcFParam.addChild(new Terminator(iter.next())); // add the '['
                 funcFParam.addChild(parseConstExp());
-                funcFParam.addChild(new Terminator(iter.next())); // add the ']'
+                funcFParam.addChild(safelyRead(TokenType.RBRACK)); // add the ']'
             }
         }
         return funcFParam;
@@ -220,38 +221,42 @@ public class Parser {
                     stmt.addChild(new Terminator(iter.next())); // add the ','
                     stmt.addChild(parseExp());
                 }
-                stmt.addChild(new Terminator(iter.next())); // add the ')'
-                stmt.addChild(new Terminator(iter.next())); // add the ';'
+                stmt.addChild(safelyRead(TokenType.RPARENT)); // add the ')'
+                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
             }
             case RETURNTK -> {
                 stmt.addChild(new Terminator(iter.next())); // add the "return"
-                if (!iter.preview(1).getType().equals(TokenType.SEMICN))
+                EnumSet<TokenType> expFirst = EnumSet.of(TokenType.LPARENT, TokenType.IDENFR,
+                        TokenType.INTCON, TokenType.PLUS, TokenType.MINU, TokenType.NOT);
+                if (expFirst.contains(iter.preview(1).getType()))
                     stmt.addChild(parseExp());
-                stmt.addChild(new Terminator(iter.next())); // add the ';'
+                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
             }
             case BREAKTK, CONTINUETK -> {
                 stmt.addChild(new Terminator(iter.next())); // add the "break" or "continue"
-                stmt.addChild(new Terminator(iter.next())); // add the ';'
+                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
             }
             case FORTK -> {
                 stmt.addChild(new Terminator(iter.next())); // add the 'for'
                 stmt.addChild(new Terminator(iter.next())); // add the '('
-                if (!iter.preview(1).getType().equals(TokenType.SEMICN))
+                if (iter.preview(1).getType().equals(TokenType.IDENFR))
                     stmt.addChild(parseForStmt());
-                stmt.addChild(new Terminator(iter.next())); // add the ';'
-                if (!iter.preview(1).getType().equals(TokenType.SEMICN))
+                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
+                EnumSet<TokenType> condFirst = EnumSet.of(TokenType.LPARENT, TokenType.IDENFR,
+                        TokenType.INTCON, TokenType.PLUS, TokenType.MINU, TokenType.NOT);
+                if (condFirst.contains(iter.preview(1).getType()))
                     stmt.addChild(parseCond());
-                stmt.addChild(new Terminator(iter.next())); // add the ';'
-                if (!iter.preview(1).getType().equals(TokenType.RPARENT))
+                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
+                if (iter.preview(1).getType().equals(TokenType.IDENFR))
                     stmt.addChild(parseForStmt());
-                stmt.addChild(new Terminator(iter.next())); // add the ')'
+                stmt.addChild(safelyRead(TokenType.RPARENT)); // add the ')'
                 stmt.addChild(parseStmt());
             }
             case IFTK -> {
                 stmt.addChild(new Terminator(iter.next())); // add the "if"
                 stmt.addChild(new Terminator(iter.next())); // add the '('
                 stmt.addChild(parseCond());
-                stmt.addChild(new Terminator(iter.next())); // add the ')'
+                stmt.addChild(safelyRead(TokenType.RPARENT)); // add the ')'
                 stmt.addChild(parseStmt());
                 if (iter.preview(1).getType().equals(TokenType.ELSETK)) {
                     stmt.addChild(new Terminator(iter.next())); // add the "else"
@@ -272,13 +277,13 @@ public class Parser {
                         if (iter.preview(1).getType().equals(TokenType.GETINTTK)) {
                             stmt.addChild(new Terminator(iter.next())); // add the "getint"
                             stmt.addChild(new Terminator(iter.next())); // add the '('
-                            stmt.addChild(new Terminator(iter.next())); // add the ')'
+                            stmt.addChild(safelyRead(TokenType.RPARENT)); // add the ')'
                         } else {
                             stmt.addChild(parseExp());
                         }
                     } else
                         stmt.addChild(tryExp);
-                    stmt.addChild(new Terminator(iter.next())); // add the ';'
+                    stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
                 }
             }
         }
@@ -312,7 +317,7 @@ public class Parser {
         while (iter.preview(1).getType().equals(TokenType.LBRACK)) {
             lVal.addChild(new Terminator(iter.next())); // add the '['
             lVal.addChild(parseExp());
-            lVal.addChild(new Terminator(iter.next())); // add the ']'
+            lVal.addChild(safelyRead(TokenType.RBRACK)); // add the ']'
         }
         return lVal;
     }
@@ -348,9 +353,11 @@ public class Parser {
                 if (iter.preview(2).getType().equals(TokenType.LPARENT)) {
                     unaryExp.addChild(new Terminator(iter.next())); // add the ident
                     unaryExp.addChild(new Terminator(iter.next())); // add the '('
-                    if (!iter.preview(1).getType().equals(TokenType.RPARENT))
+                    EnumSet<TokenType> funcRParamsFirst = EnumSet.of(TokenType.LPARENT, TokenType.IDENFR,
+                            TokenType.INTCON, TokenType.PLUS, TokenType.MINU, TokenType.NOT);
+                    if (funcRParamsFirst.contains(iter.preview(1).getType()))
                         unaryExp.addChild(parseFuncRParams());
-                    unaryExp.addChild(new Terminator(iter.next())); // add the ')'
+                    unaryExp.addChild(safelyRead(TokenType.RPARENT)); // add the ')'
                 } else
                     unaryExp.addChild(parsePrimaryExp());
             }
@@ -463,5 +470,20 @@ public class Parser {
             fixed.addChild(0, toLeftRecursion(new ArrayList<>(raw.subList(0, raw.size() - 2)), type));
         }
         return fixed;
+    }
+
+    private Node safelyRead(TokenType expectType) { // for ')', ']' ';'
+        Token nextToken = iter.preview(1);
+        if (nextToken.getType().equals(expectType)) {
+            return new Terminator(iter.next());
+        } else {
+            String expectedChar = expectType.equals(TokenType.RPARENT) ? ")" :
+                    expectType.equals(TokenType.RBRACK) ? "]" : ";";
+            ErrorType errorType = expectType.equals(TokenType.RPARENT) ? ErrorType.J :
+                    expectType.equals(TokenType.RBRACK) ? ErrorType.K : ErrorType.I;
+            int expectedLineNum = iter.preview(0).getLineNum();
+            return new Terminator(new Token(expectedChar, expectType, expectedLineNum),
+                    new Error(expectedLineNum, errorType));
+        }
     }
 }

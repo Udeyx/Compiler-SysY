@@ -74,6 +74,33 @@ int b = 5, c;
 
 - 使用栈式符号表来处理
 - 栈式符号表的进出栈是以表为单位的，每次进出都是整个进，整个出
+- 把错误信息存在 node 中，由于使用 Terminator 对终结符进行了包装，所有错误最终都会有一个单独的 Terminator（如果是语义错误则是其他节点） 来表示
+- 一个`Node`中是有可能有多个同级错误产生的，比如 UnaryExp 中，函数参数和返回值同时出问题。因此，每一个 Node 里面最好有一个 ArrayList 存各种错误，然后检查的时候，按照顺序检查。
+- stmt 中缺少分号的有这几种：普通赋值、exp;、break、continue、return、getint、printf、**for 条件中的分号**
+- 要考虑分号对 stmt 中几个东西本来解析的影响！！！小括号也会影响！！！
+- `Exp`的 first 集是: `{ LPARENT, IDENFR, INTCNT, +, -, ! }`
+- `UnaryExp`的 first 集与`Exp`的 first 集相同
+- `FuncRParams`的 first 集与`Exp`相同
+- `FuncFParams`的 first 集里只有`int`
+- `stmt`中缺少小括号的有这几种：`if`, `for`, `getint`, `printf`
+- `ForStmt`的 first 集里只有`IDENTR`
+-
+
+**完成情况**
+
+- [x] a，如果一个 formatstring 中有多个字符出现问题，只报错一次！！！
+- [ ] b
+- [ ] c
+- [ ] d
+- [ ] e
+- [ ] f
+- [ ] g
+- [ ] h
+- [x] i
+- [x] j
+- [x] k
+- [ ] l
+- [ ] m
 
 **TODO**
 
@@ -87,6 +114,7 @@ int b = 5, c;
 5. 符号表表项应该分为变量(包括常量)和函数
 6. 符号表的表项是在`check`的过程中生成的
 7. 在错误处理和中间代码生成的地方其实可以用同一个符号表栈，因为如果能通过`check`，则栈内一切应该都回到初始状态了。
+8. 考虑一行中出现多个相同报错的情况！！！
 
 ## 提醒
 

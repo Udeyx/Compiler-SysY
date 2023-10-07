@@ -5,10 +5,12 @@ import java.util.ArrayList;
 public class Node {
     private final NodeType type;
     private final ArrayList<Node> children;
+    private final ArrayList<Error> errors;
 
     public Node(NodeType type) {
         this.type = type;
         this.children = new ArrayList<>();
+        this.errors = new ArrayList<>();
     }
 
     public void addChild(Node node) {
@@ -17,6 +19,18 @@ public class Node {
 
     public void addChild(int pos, Node node) {
         children.add(pos, node);
+    }
+
+    public ArrayList<Node> getChildren() {
+        return children;
+    }
+
+    public void addError(Error error) {
+        errors.add(error);
+    }
+
+    public ArrayList<Error> check() {
+        return errors;
     }
 
     public void traverse() { // postorder traversal
