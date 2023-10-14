@@ -1,8 +1,6 @@
 package analysis.node;
 
-import analysis.Node;
-import analysis.NodeType;
-import analysis.Token;
+import util.NodeType;
 
 public class Decl extends Node {
     public Decl() {

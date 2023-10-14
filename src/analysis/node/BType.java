@@ -1,7 +1,6 @@
 package analysis.node;
 
-import analysis.Node;
-import analysis.NodeType;
+import util.NodeType;
 
 public class BType extends Node {
     public BType() {

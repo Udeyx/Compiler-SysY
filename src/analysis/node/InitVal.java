@@ -1,8 +1,6 @@
 package analysis.node;
 
-import analysis.Node;
-import analysis.NodeType;
-import analysis.TokenType;
+import util.NodeType;
 
 public class InitVal extends Node {
     public InitVal() {

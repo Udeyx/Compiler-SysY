@@ -1,9 +1,7 @@
 package analysis.node;
 
-import analysis.Node;
-import analysis.NodeType;
-import cross.SymManager;
-import cross.SymTable;
+import symbol.Manager;
+import util.NodeType;
 
 
 public class CompUnit extends Node {
@@ -13,8 +11,9 @@ public class CompUnit extends Node {
 
     @Override
     public void check() {
-        SymManager.getInstance().push(new SymTable());
+        Manager manager = Manager.getInstance();
+        manager.addScope();
         super.check();
-        SymManager.getInstance().pop(); // make the table list empty
+        manager.delScope();
     }
 }

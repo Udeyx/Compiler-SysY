@@ -1,10 +1,11 @@
 package analysis.node;
 
-import analysis.*;
-import analysis.Error;
-import cross.SymManager;
-import cross.Symbol;
-import cross.symbol.ConstSymbol;
+import analysis.Token;
+import analysis.node.exp.ConstExp;
+import symbol.ConSymbol;
+import symbol.Manager;
+import util.ErrorType;
+import util.NodeType;
 
 public class ConstDef extends Node {
     public ConstDef() {
@@ -13,19 +14,24 @@ public class ConstDef extends Node {
 
     @Override
     public void check() {
-        Token identity = ((Terminator) getChildren().get(0)).getVal();
-        SymManager manager = SymManager.getInstance();
-        if (manager.isRepeated(identity.getVal())) {
-            System.out.println(new Error(identity.getLineNum(), ErrorType.B));
-        } else {
-            registerSymbol();
-        }
         super.check();
+        // error b
+        Manager manager = Manager.getInstance();
+        boolean success = manager.addSymbol(genSymbol());
+        if (!success)
+            submitError(getIdentity().getLineNum(), ErrorType.B);
     }
 
-    private void registerSymbol() {
-        Token identity = ((Terminator) getChildren().get(0)).getVal();
-        SymManager.getInstance().addDefinition(new ConstSymbol(identity.getVal(), identity.getLineNum(),
-                (getChildren().size() - 3) / 2));
+    private ConSymbol genSymbol() {
+        int dim = 0;
+        for (Node child : getChildren()) {
+            if (child instanceof ConstExp)
+                dim++;
+        }
+        return new ConSymbol(getIdentity().getVal(), dim);
+    }
+
+    private Token getIdentity() {
+        return ((Terminator) getChildren().get(0)).getVal();
     }
 }

@@ -1,43 +1,24 @@
-import analysis.*;
+import analysis.Iter;
+import analysis.Lexer;
+import analysis.Parser;
+import analysis.Token;
 import analysis.node.CompUnit;
+import util.IOer;
 
-import java.io.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Compiler {
     public static void main(String[] args) {
+        String outputType = "error";
         String filePath = "testfile.txt";
-        File file = new File(filePath);
-        ArrayList<String> lines = new ArrayList<>();
-        try {
-            Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().replace("\r", "");
-                lines.add(line);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("fuck");
-        }
+        ArrayList<String> lines = IOer.readLines(filePath);
         ArrayList<Token> tokens = new Lexer().tokenize(lines);
-//        try {
-//            PrintStream ps = new PrintStream(new File("output.txt"));
-//            PrintStream console = System.out;
-//            System.setOut(ps);
-//            tokens.forEach(System.out::println);
-//            System.setOut(console);
-//        } catch (IOException e) {
-//            System.out.println("fuck");
-//        }
         CompUnit compUnit = new Parser(new Iter(tokens)).parseCompUnit();
-        try {
-            PrintStream ps = new PrintStream(new File("output.txt"));
-            PrintStream console = System.out;
-            System.setOut(ps);
-            compUnit.traverse();
-            System.setOut(console);
-        } catch (IOException e) {
-            System.out.println("fuck");
+        compUnit.check();
+        switch (outputType) {
+            case "lex" -> IOer.printLex(tokens);
+            case "parse" -> IOer.printParse(compUnit);
+            case "error" -> IOer.printError();
         }
     }
 }

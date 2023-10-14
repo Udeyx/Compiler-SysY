@@ -1,0 +1,8 @@
+int main() {
+    printf("%d%d");
+    printf("%d%d", 1, 2, 3);
+    printf("%da%dc");
+    printf("%d'%dc", 1, 1);
+    printf("%d\n\n%dc", 1, 1);
+    return 0;
+}

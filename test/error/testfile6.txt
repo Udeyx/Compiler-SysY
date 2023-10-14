@@ -1,0 +1,50 @@
+int f, j
+const int d = 0;
+int f() {
+    break;
+    continue;
+
+}
+int f() {
+    for(;;) {
+        break;
+        continue;
+        break;
+    }
+}
+
+void g(int a, int b) {
+    return;
+    break;
+    continue;
+}
+void h(int a, int b) {
+    return 0 ;
+}
+
+int main() {
+    const int c = 10, e = 2
+    c = 11;
+    d = 1;
+    c = getint();
+    int d = 1;
+    d = 1;
+    g();
+    g(1);
+    g(1, 2);
+    int a[1][1] = {{0}};
+    g(a, 2);
+    g(a[0], 2);
+    g(a[0][0], 2);
+    g(a[0][0], 2, 3);
+    break;
+    continue;
+    for(;;) {
+        break;
+        continue;
+    }
+    if(1){
+        break;
+        continue;
+    }
+}

@@ -2,15 +2,22 @@ package analysis;
 
 import analysis.node.*;
 import analysis.node.Number;
+import analysis.node.exp.*;
+import analysis.node.func.*;
+import util.ErrorType;
+import util.NodeType;
+import util.TokenType;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 
 public class Parser {
     private final Iter iter;
+    private boolean inRecall;
 
     public Parser(Iter iter) {
         this.iter = iter;
+        this.inRecall = false;
     }
 
     public CompUnit parseCompUnit() {
@@ -241,15 +248,15 @@ public class Parser {
                 stmt.addChild(new Terminator(iter.next())); // add the '('
                 if (iter.preview(1).getType().equals(TokenType.IDENFR))
                     stmt.addChild(parseForStmt());
-                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
+                stmt.addChild(new Terminator(iter.next())); // add the ';'
                 EnumSet<TokenType> condFirst = EnumSet.of(TokenType.LPARENT, TokenType.IDENFR,
                         TokenType.INTCON, TokenType.PLUS, TokenType.MINU, TokenType.NOT);
                 if (condFirst.contains(iter.preview(1).getType()))
                     stmt.addChild(parseCond());
-                stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
+                stmt.addChild(new Terminator(iter.next())); // add the ';'
                 if (iter.preview(1).getType().equals(TokenType.IDENFR))
                     stmt.addChild(parseForStmt());
-                stmt.addChild(safelyRead(TokenType.RPARENT)); // add the ')'
+                stmt.addChild(new Terminator(iter.next())); // add the ')'
                 stmt.addChild(parseStmt());
             }
             case IFTK -> {
@@ -269,7 +276,9 @@ public class Parser {
                     stmt.addChild(new Terminator(iter.next())); // add the ';'
                 } else {
                     int realPos = iter.getPos();
-                    Exp tryExp = parseExp();
+                    inRecall = true;
+                    parseExp();
+                    inRecall = false;
                     if (iter.preview(1).getType().equals(TokenType.ASSIGN)) {
                         iter.setPos(realPos); // recall !!!
                         stmt.addChild(parseLVal());
@@ -281,8 +290,10 @@ public class Parser {
                         } else {
                             stmt.addChild(parseExp());
                         }
-                    } else
-                        stmt.addChild(tryExp);
+                    } else {
+                        iter.setPos(realPos); // recall !!!
+                        stmt.addChild(parseExp());
+                    }
                     stmt.addChild(safelyRead(TokenType.SEMICN)); // add the ';'
                 }
             }
@@ -482,8 +493,9 @@ public class Parser {
             ErrorType errorType = expectType.equals(TokenType.RPARENT) ? ErrorType.J :
                     expectType.equals(TokenType.RBRACK) ? ErrorType.K : ErrorType.I;
             int expectedLineNum = iter.preview(0).getLineNum();
-            return new Terminator(new Token(expectedChar, expectType, expectedLineNum),
-                    new Error(expectedLineNum, errorType));
+            if (!inRecall)
+                Handler.getInstance().recordError(new Error(expectedLineNum, errorType));
+            return new Terminator(new Token(expectedChar, expectType, expectedLineNum));
         }
     }
 }

@@ -1,9 +1,11 @@
 package analysis.node;
 
-import analysis.*;
-import analysis.Error;
-import cross.SymManager;
-import cross.symbol.VarSymbol;
+import analysis.Token;
+import analysis.node.exp.ConstExp;
+import symbol.Manager;
+import symbol.VarSymbol;
+import util.ErrorType;
+import util.NodeType;
 
 public class VarDef extends Node {
     public VarDef() {
@@ -12,26 +14,24 @@ public class VarDef extends Node {
 
     @Override
     public void check() {
-        Token identity = ((Terminator) getChildren().get(0)).getVal();
-        SymManager manager = SymManager.getInstance();
-        if (manager.isRepeated(identity.getVal())) {
-            System.out.println(new Error(identity.getLineNum(), ErrorType.B));
-        } else {
-            registerSymbol();
-        }
         super.check();
+        // error b
+        Manager manager = Manager.getInstance();
+        boolean success = manager.addSymbol(genSymbol());
+        if (!success)
+            submitError(getIdentity().getLineNum(), ErrorType.B);
     }
 
-    private void registerSymbol() {
-        boolean hasAssign = false;
-        for (Node node : getChildren()) {
-            if (node instanceof Terminator && ((Terminator) node).getVal().getType().equals(TokenType.ASSIGN)) {
-                hasAssign = true;
-                break;
-            }
+    private VarSymbol genSymbol() {
+        int dim = 0;
+        for (Node child : getChildren()) {
+            if (child instanceof ConstExp)
+                dim++;
         }
-        int dim = hasAssign ? (getChildren().size() - 3) / 2 : (getChildren().size() - 1) / 2;
-        Token identity = ((Terminator) getChildren().get(0)).getVal();
-        SymManager.getInstance().addDefinition(new VarSymbol(identity.getVal(), identity.getLineNum(), dim));
+        return new VarSymbol(getIdentity().getVal(), dim);
+    }
+
+    private Token getIdentity() {
+        return ((Terminator) getChildren().get(0)).getVal();
     }
 }

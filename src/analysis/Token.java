@@ -1,5 +1,7 @@
 package analysis;
 
+import util.TokenType;
+
 public class Token {
     private final String val;
     private final TokenType type;
