@@ -11,19 +11,20 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class IOer {
-    public static ArrayList<String> readLines(String filePath) {
-        File file = new File(filePath);
-        ArrayList<String> lines = new ArrayList<>();
+    public static String readFile(String filePath) {
+        StringBuilder sb = new StringBuilder();
         try {
-            Scanner scanner = new Scanner(file);
+            Scanner scanner = new Scanner(new File(filePath));
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine().replace("\r", "");
-                lines.add(line);
+                sb.append(line);
+                sb.append("\n");
             }
+            scanner.close();
         } catch (FileNotFoundException e) {
-            System.out.println("exception in readLines");
+            System.out.println("exception in readFile");
         }
-        return lines;
+        return sb.toString();
     }
 
     public static void printLex(ArrayList<Token> tokens) {

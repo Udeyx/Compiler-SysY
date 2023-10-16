@@ -3,96 +3,129 @@ package analysis;
 import util.TokenType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class Lexer {
-    public ArrayList<Token> tokenize(ArrayList<String> lines) {
-        ArrayList<String> noComment = removeComment(lines);
-        ArrayList<Token> tokens = new ArrayList<>();
-        for (int i = 0; i < noComment.size(); i++)
-            tokens.addAll(tokenizeALine(noComment.get(i), i));
-        return tokens;
+    private int pos;
+    private int lineNum;
+    private char curChar;
+
+    private final String source;
+
+    public Lexer(String source) {
+        this.pos = -1;
+        this.lineNum = 1;
+        this.source = source;
+        this.curChar = 0;
     }
 
 
-    private ArrayList<Token> tokenizeALine(String line, int lineNum) { // pure function
-        ArrayList<Token> res = new ArrayList<>();
-        int len = line.length();
-        for (int i = 0; i < len; i++) {
-            char c = line.charAt(i);
+    public ArrayList<Token> tokenize() {
+        ArrayList<Token> tokens = new ArrayList<>();
+        while (hasNext()) {
             StringBuilder sb = new StringBuilder();
-            if (!"\n \t\r".contains(String.valueOf(c))) {
-                if (c == '_' || Character.isLetter(c)) {
-                    while (c == '_' || Character.isLetterOrDigit(c)) {
-                        sb.append(c);
-                        i++;
-                        if (i >= len) {
-                            break;
+            char c = next();
+            if (isBlank(c)) { // '\n', '\r',  ' ', '\t'
+                if (isLineBreak(c))
+                    lineNum++;
+            } else if (c == '/') { // comment or div
+                sb.append(c);
+                if (hasNext()) {
+                    switch (preview(1)) {
+                        case '/' -> {
+                            next(); // read "//"
+                            if (!hasNext())
+                                break;
+
+                            c = next(); // read the char next to "//"
+                            while (!isLineBreak(c) && hasNext())
+                                c = next();
+                            lineNum++; // already read the '\n' or at end
                         }
-                        c = line.charAt(i);
+                        case '*' -> {
+                            next(); // read "*/"
+                            if (!hasNext())
+                                break;
+
+                            c = next(); // read the char next to "/*"
+                            while (true) {
+                                if (c == '*' && hasNext() && preview(1) == '/') {
+                                    next(); // read the "*/"
+                                    break;
+                                } else {
+                                    if (isLineBreak(c))
+                                        lineNum++;
+                                    if (!hasNext())
+                                        break;
+                                    c = next();
+                                }
+                            }
+                        }
+                        default -> tokens.add(new Token(sb.toString(), tellType(sb.toString()), lineNum));
                     }
-                    i--;
+                } else {
+                    tokens.add(new Token(sb.toString(), tellType(sb.toString()), lineNum));
+                }
+            } else { // not blank and not comment and not '/'
+                if (c == '_' || Character.isLetter(c)) { // ident or keyword
+                    sb.append(c);
+                    while (hasNext()
+                            && (preview(1) == '_' || Character.isLetterOrDigit(preview(1)))) {
+                        sb.append(next());
+                    }
                 } else if (Character.isDigit(c)) {
-                    while (Character.isDigit(c)) {
-                        sb.append(c);
-                        i++;
-                        if (i >= len) {
-                            break;
-                        }
-                        c = line.charAt(i);
-                    }
-                    i--;
+                    sb.append(c);
+                    while (hasNext() && Character.isDigit(preview(1)))
+                        sb.append(next());
                 } else if (c == '"') {
                     sb.append(c);
-                    do {
-                        i++;
-                        if (i >= len) {
+                    while (hasNext()) {
+                        c = next();
+                        sb.append(c);
+                        if (c == '"')
                             break;
-                        }
-                        c = line.charAt(i);
-                        sb.append(c);
-                    } while (c != '"');
-                } else if ("+-*/%;,()[]{}".contains(String.valueOf(c))) {
-                    sb.append(c);
-                } else if (c == '|' || c == '&') {
-                    sb.append(c);
-                    if (i + 1 < len && line.charAt(i + 1) == c) {
-                        sb.append(c);
-                        i++;
                     }
-                } else if (c == '!') {
+                } else if ("+-*%;,()[]{}".contains(String.valueOf(c))) {
                     sb.append(c);
-                    if (i + 1 < len && line.charAt(i + 1) == '=') {
-                        sb.append('=');
-                        i++;
-                    }
-                } else if (c == '<') {
+                } else if (c == '&' || c == '|') {
                     sb.append(c);
-                    if (i + 1 < len && line.charAt(i + 1) == '=') {
-                        sb.append('=');
-                        i++;
-                    }
-                } else if (c == '>') {
+                    if (hasNext() && preview(1) == c)
+                        sb.append(next());
+                } else if ("!><=".contains(String.valueOf(c))) {
                     sb.append(c);
-                    if (i + 1 < len && line.charAt(i + 1) == '=') {
-                        sb.append('=');
-                        i++;
-                    }
-                } else if (c == '=') {
-                    sb.append(c);
-                    if (i + 1 < len && line.charAt(i + 1) == '=') {
-                        sb.append('=');
-                        i++;
-                    }
+                    if (hasNext() && preview(1) == '=')
+                        sb.append(next());
                 } else {
                     System.out.printf("fuck, c == %c", c);
                 }
-                res.add(new Token(sb.toString(), tellType(sb.toString()), lineNum));
+                if (!sb.toString().isEmpty())
+                    tokens.add(new Token(sb.toString(), tellType(sb.toString()), lineNum));
             }
         }
-        return res;
+        return tokens;
     }
+
+    private boolean isBlank(char c) {
+        return "\n \t\r".contains(String.valueOf(c));
+    }
+
+    private boolean isLineBreak(char c) {
+        return c == '\n';
+    }
+
+    private boolean hasNext() {
+        return pos + 1 < source.length();
+    }
+
+    private char next() {
+        pos++;
+        curChar = source.charAt(pos);
+        return curChar;
+    }
+
+    private char preview(int offset) {
+        return source.charAt(pos + offset);
+    }
+
 
     private TokenType tellType(String token) { // pure function
         return switch (token) {
@@ -140,71 +173,5 @@ public class Lexer {
                 else yield TokenType.IDENFR;
             }
         };
-    }
-
-    private ArrayList<String> removeComment(ArrayList<String> lines) {
-        ArrayList<String> noInlineComment = lines.stream()
-                .map(this::removeInlineComment)
-                .collect(Collectors.toCollection(ArrayList::new));
-        return removeMultiLineComment(noInlineComment);
-    }
-
-    private String removeInlineComment(String line) {
-        boolean inStr = false;
-        for (int i = 0; i < line.length() - 1; i++) { // i < len - 1 !
-            if (inStr) {
-                if (line.charAt(i) == '"') {
-                    inStr = false;
-                }
-            } else {
-                if (line.charAt(i) == '"') {
-                    inStr = true;
-                } else if (line.charAt(i) == '/' && line.charAt(i + 1) == '/') {
-                    return line.substring(0, i);
-                }
-
-            }
-
-        }
-        return line;
-    }
-
-    private ArrayList<String> removeMultiLineComment(ArrayList<String> lines) {
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            sb.append(line);
-            sb.append("\n");
-        }
-        String line = sb.toString();
-        boolean inStr = false;
-        boolean inComment = false;
-        StringBuilder ab = new StringBuilder(); // answer builder
-        for (int i = 0; i < line.length() - 1; i++) { // i < len - 1 !
-            char c = line.charAt(i);
-            if (inComment) {
-                if (c == '\n') {
-                    ab.append(c);
-                } else if (c == '*' && line.charAt(i + 1) == '/') {
-                    inComment = false;
-                    i += 1; // or '/' in "*/" will be in the result
-                }
-            } else {
-                if (inStr) {
-                    if (c == '"') {
-                        inStr = false;
-                    }
-                } else {
-                    if (c == '"') {
-                        inStr = true;
-                    } else if (c == '/' && line.charAt(i + 1) == '*') {
-                        inComment = true;
-                    }
-                }
-                if (!inComment) {
-                    ab.append(c);
-                }
-            }
-        }
-        return new ArrayList<>(Arrays.asList(ab.toString().split("\n")));
     }
 }

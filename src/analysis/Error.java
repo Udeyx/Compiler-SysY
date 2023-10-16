@@ -13,7 +13,7 @@ public class Error {
 
     @Override
     public String toString() {
-        return (lineNum + 1) + " " + errorType;
+        return lineNum + " " + errorType;
     }
 
     public int getLineNum() {
