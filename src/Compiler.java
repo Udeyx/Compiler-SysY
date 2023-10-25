@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class Compiler {
     public static void main(String[] args) {
-        String outputType = "lex";
+        String outputType = "error";
         String filePath = "testfile.txt";
 
         // read source file to source string
