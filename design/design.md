@@ -147,6 +147,97 @@ int main() {
 
 ## 中间代码生成
 
+### LLVM 核心类层次结构
+
+[原文链接](https://www.llvm.org/docs/ProgrammersManual.html#the-core-llvm-class-hierarchy-reference)
+
+#### Type 类及其衍生类
+
+- Type 不能直接实例化，只能通过子类实例化
+- 继承了 Type 的基本类有 IntegerType, ArrayType, FunctionType 等
+- 每个 Type 对象应该是单例的，因此可以用枚举类
+- LLVM 自带一些和 Type 有关的方法：`isIntegerTy`, `isFloatingPointTy`。代表 is ... type
+
+#### Module 类
+
+- 代表了一个被编译文件的顶层结构（对应咱们的 CompUnit），记录一系列的 Function, GlobalVariables 以及**一个 SymbolTable**
+- 具有`insertGlobalVariable`, `getSymbolTable`等方法
+
+#### Value 类
+
+- LLVM 中最重要的类
+    - 代表了一个**有类型**的值
+    - 在各种指令中被当作操作数使用
+- 这些都是 Value：Constant, Argument, Function, Instruction
+- 一个 Value 会在一个 LLVM 表示中被使用多次。为了维护 Value 和使用者的关系，Value 中维护了一个 User 列表，保存使用它的使用者的信息
+- Value 可以有名字，但不是必须的
+- 在 LLVM 中，一个 ssa 变量和产生该变量的
+
+#### User 类
+
+- 代表了 llvm 图的结点
+- 是 Value 的子类
+
+**TODO**
+从简单的开始，逐步生成。`buildIR()`中要先填符号表再生成对应的 llvm 对象
+**尽量把维护符号表的任务交给 irBuilder**
+**注意，现在一些代码生成的地方其实用到了错误处理维护的类内成员，比如 funcSymbol**
+**可以在代码生成中继续用以前的方式维护符号表，并继续用以前的符号**
+注意符号表里的维数要慎用，因为llvm系列对象中最高只有1维数组
+llvm 的变量是 ssa 的，符号表中存的名称肯定是原来的名称，这样方便查找。但自己在生成的过程中，就必须给每个 Value 分配符合 ssa 的名字
+
+1. 全局变量（变量/常量）
+    1. 确定变量的类型（IntegerType 或者是一维数组）
+    2. 在所有 exp 中实现 evaluate 方法
+    3. 搞一下 global variable 的 toString 方法
+    4. 必须要用 zeroinitializer，来初始化一个没有被赋初值的数组，否则
+    5. 以后可以把 global variable 中的 initVal 改成 Number，应对以后可能出现 double 类型数据的情况
+2. 局部变量及指令
+    1. 先把所有要用的指令都给声明了
+    2. 把指令在 irbuilder 中的方法看懂
+    3. 函数还是得管，不过就目前来说，每个函数只有几个基本块，不用做数据流分析
+3. 函数
+    1. 在 irbuilder 中写 buildFunction
+        1. 维护符号表
+        2. 维护 Module 的 Function 列表
+        3. 维护 curFunction
+        4. 新建一个 basicblock，因为一个函数开头第一个语句一定会开启一个新的基本块
+        5. 在 buildFunction 的过程中或许不用把 basicblock 作为参数传进去，而应该设置一个 curFunction，然后在 buildBasicBlock 时，再把东西传到这个函数里面。Argument 也可以这样，没必要在建 Function 的时候全部算好，而且在添加 argument 的时候还得。
+            1. 形参的类型是 I32 或者指针，由于之前就把数组拍扁了，这里只认为有一重指针
+            2. 如果参数是整数类型，就需要预先用 alloc 创建好指针，以满足 ssa 要求。其实是在开始后就用 alloca 为所有 int 类型变量都设置一个替代品。这也就要求，函数里面的东西使用形参的时候，如果碰到不能直接使用的形参，要用 alloca 出来的变量，一种可行的实现方法是在维护符号表时，变量名就是正常输入的，但 Value 的 name 要视情况而变。在输出为 llvm ir 的时候，函数头都是直接按照占位符的顺序输出，但后面具体使用参数时，要按照符号表的输出。
+        6. 传参涉及到参数是数组的情况，要设置好 PointerType
+    2. 在 FuncDef 中
+        1. 维护 FunctionType
+        2. 维护 Arguments
+        3. 计算 Argument 和 FunctionType 的时候难免要用到一些指令的东西？那时可能得先解决那些。
+        4. 调用 enterFunction，来确保符号表正确
+        5. 要为没有 return 语句的函数补上 return 语句，因为 llvm 是必须要有 return 的
+
+### 问题
+
+1. 全局变量是用的哪种 llvm 结构，哪种 type。等号右边的东西又是如何计算的？
+   将高维数组干成一维数组！！！也就是说永远只有一维数组！因此全局变量的类型只能是 I32 或者一维数组
+   写一个 evaluate 方法来计算东西的值**刚开始的时候，可以默认全部不含变量，但后面就可能用到变量**
+   **记得填符号表(这个在 buildGlobalVariable 里面填了！！！)**
+
+2. 函数类里面存什么，函数类型要记录什么，如何数据流分析
+   函数中记录参数(Value/Argument)、FunctionType，而 FunctionType 中记录参数类型和返回值类型
+
+3. 数组数据是如何处理的？ArrayType 具体是怎样？数组本身算是什么？Value？
+
+4. Use 和 User 到底在哪用了，怎么维护的？
+
+5. 数据流分析到底是怎么做的？
+
+6. 局部变量对应哪种 llvm 类？Value? allocainstr, 又是哪种 type
+
+7. 有哪些用到的 instr?
+
+### Tips
+
+- 别一步到 ssa ir，先使用访存指令来简化，之后再 memtoreg
+- GlobalValue 存的是全局变量、全局常量和函数的地址，这些地址显然是不变的，因此 GlobalValue 继承了 Constant
+
 ## 提醒
 
 - 尽量保证除了构造方法以外的其他方法都是纯函数，因为作为构造方法传入的参数在外面可能还是要用的，而构造方法通常只是浅克隆复制了引用，这样一改对象内部的成分，外面的对象也会变

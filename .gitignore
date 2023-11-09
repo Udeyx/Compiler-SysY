@@ -4,7 +4,9 @@ out
 *.iml
 Excalidraw
 testfile.txt
+input.txt
 output.txt
+llvm_ir.txt
 error.txt
 *code.zip
 *META-INF

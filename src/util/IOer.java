@@ -1,8 +1,10 @@
 package util;
 
-import analysis.Handler;
-import analysis.Token;
-import analysis.node.CompUnit;
+import frontend.Handler;
+import frontend.Token;
+import frontend.node.CompUnit;
+import midend.ir.IRBuilder;
+import midend.ir.Module;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -58,6 +60,16 @@ public class IOer {
         } catch (FileNotFoundException e) {
             System.out.println("exception in printError");
         }
+    }
 
+    public static void printIR() {
+        try {
+            PrintStream ps = new PrintStream("llvm_ir.txt");
+            System.setOut(ps);
+            System.out.println(IRBuilder.getInstance().getModule());
+            ps.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("exception in printIR");
+        }
     }
 }

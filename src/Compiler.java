@@ -1,8 +1,8 @@
-import analysis.Iter;
-import analysis.Lexer;
-import analysis.Parser;
-import analysis.Token;
-import analysis.node.CompUnit;
+import frontend.Iter;
+import frontend.Lexer;
+import frontend.Parser;
+import frontend.Token;
+import frontend.node.CompUnit;
 import util.IOer;
 
 import java.util.ArrayList;
@@ -24,11 +24,15 @@ public class Compiler {
         // check error
         compUnit.check();
 
+        // generate llvm representation
+//        compUnit.buildIR();
+
         // output
         switch (outputType) {
             case "lex" -> IOer.printLex(tokens);
             case "parse" -> IOer.printParse(compUnit);
             case "error" -> IOer.printError();
+            case "ir" -> IOer.printIR();
         }
     }
 }
