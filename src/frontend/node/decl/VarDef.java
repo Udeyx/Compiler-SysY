@@ -17,6 +17,7 @@ import util.ErrorType;
 import util.NodeType;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class VarDef extends Node {
     private VarSymbol varSymbol;
@@ -38,7 +39,7 @@ public class VarDef extends Node {
 
     @Override
     public void buildIR() {
-        Type eleType = getDim() == 0 ? IntegerType.I32 : new ArrayType(IntegerType.I32, getElementNum());
+        Type eleType = getDim() == 0 ? IntegerType.I32 : new ArrayType(IntegerType.I32, getEleSize());
         PointerType type = new PointerType(eleType);
         if (manager.isInGlobal()) {
             ArrayList<Integer> initVal = getInitVal();
@@ -47,18 +48,26 @@ public class VarDef extends Node {
             varSymbol.setLlvmObj(globalVar);
             varSymbol.setInitVal(initVal);
             manager.addSymbol(varSymbol);
+            if (children.stream().filter(child -> child instanceof ConstExp)
+                    .count() == 2) { // 2d array
+                varSymbol.setSecondDimSize(children.get(5).evaluate());
+            }
         } else {
             AllocaInst allocaInst = irBuilder.buildAlloca(type);
             varSymbol.setLlvmObj(allocaInst);
             varSymbol.setInitVal(new ArrayList<>());
             manager.addSymbol(varSymbol);
+            if (children.stream().filter(child -> child instanceof ConstExp)
+                    .count() == 2) { // 2d array
+                varSymbol.setSecondDimSize(children.get(5).evaluate());
+            }
             if (children.get(children.size() - 1) instanceof InitVal) {
                 ArrayList<Value> initValues = ((InitVal) children.get(children.size() - 1)).getInitValues();
                 if (type.equals(new PointerType(IntegerType.I32))) {
                     irBuilder.buildStore(initValues.get(0), allocaInst);
                 } else { // 1d array
                     for (int i = 0; i < initValues.size(); i++) {
-                        GEPInst gepInst = irBuilder.buildGEP(allocaInst, i);
+                        GEPInst gepInst = irBuilder.buildGEPWithZeroPrep(allocaInst, i);
                         irBuilder.buildStore(initValues.get(i), gepInst);
                     }
                 }
@@ -80,12 +89,11 @@ public class VarDef extends Node {
         return ((InitVal) children.get(children.size() - 1)).getInitVal(getDim());
     }
 
-    private int getElementNum() {
-        int elementNum = 1;
-        for (Node child : children) {
-            if (child instanceof ConstExp)
-                elementNum *= child.evaluate();
-        }
-        return elementNum;
+    private ArrayList<Integer> getEleSize() {
+        ArrayList<Integer> eleSize = new ArrayList<>();
+        children.stream().filter(child -> child instanceof ConstExp)
+                .map(child -> ((ConstExp) child).evaluate())
+                .forEach(eleSize::add);
+        return eleSize;
     }
 }

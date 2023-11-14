@@ -7,6 +7,8 @@ import frontend.symbol.ConSymbol;
 import frontend.symbol.Symbol;
 import midend.ir.Type.IntegerType;
 import midend.ir.Type.PointerType;
+import midend.ir.Type.Type;
+import midend.ir.Value.ConstantInt;
 import midend.ir.Value.Value;
 import midend.ir.Value.instruction.GEPInst;
 import midend.ir.Value.instruction.LoadInst;
@@ -15,7 +17,10 @@ import util.DataType;
 import util.ErrorType;
 import util.NodeType;
 
-public class LVal extends Node {
+import java.util.ArrayList;
+import java.util.List;
+
+public class LVal extends Node implements ValueHolder {
     public LVal() {
         super(NodeType.LVAL);
     }
@@ -79,39 +84,75 @@ public class LVal extends Node {
 
     public Value buildExpIR() {
         Symbol symbol = manager.getSymbol(getIdentity().getVal());
-        if (symbol.getLlvmObj().getType().equals(new PointerType(IntegerType.I32))) {
+        Type symbolLLVMType = symbol.getLlvmObj().getType();
+        if (symbol.getDataType().equals(DataType.INT)) {
             return irBuilder.buildLoad(symbol.getLlvmObj());
-        } else { // 2d array should use MulInst
-            System.out.println(symbol.getName() + " " + symbol.getLlvmObj().getType());
-            if (getReduceDim() == 0) {
-                return symbol.getLlvmObj();
-            } else if (getReduceDim() == 1) { // real 1d array, index at 2
-                Value index = ((Exp) children.get(2)).buildExpIR();
-                GEPInst gepInst = irBuilder.buildGEP(symbol.getLlvmObj(), index);
-                return irBuilder.buildLoad(gepInst);
-            } else { // real 2d array, index at 2, 5
-                Value index1 = ((Exp) children.get(2)).buildExpIR();
-                Value index2 = ((Exp) children.get(5)).buildExpIR();
-                Value index = irBuilder.buildMul(IntegerType.I32, index1, index2);
-                GEPInst gepInst = irBuilder.buildGEP(symbol.getLlvmObj(), index);
-                return irBuilder.buildLoad(gepInst);
+        } else {
+            switch (getReduceDim()) {
+                case 0 -> { // as param
+                    if (symbolLLVMType.equals(new PointerType(IntegerType.I32))) // i32*
+                        return symbol.getLlvmObj();
+                    return irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), 0); // [n * i32]*
+                }
+                case 1 -> { // use content or as param
+                    if (symbol.getDataType().equals(DataType.ONE)) { // 1d array use content
+                        Value index = ((Exp) children.get(2)).buildExpIR();
+                        GEPInst gepInst;
+                        if (symbolLLVMType.equals(new PointerType(IntegerType.I32))) {
+                            gepInst = irBuilder.buildGEP(symbol.getLlvmObj(), index);
+                        } else {
+                            gepInst = irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), index);
+                        }
+                        return irBuilder.buildLoad(gepInst);
+                    } else { // 2d array use 1d param
+                        Value index1 = ((Exp) children.get(2)).buildExpIR();
+                        ConstantInt secondDimSize = irBuilder.buildConstantInt(symbol.getSecondDimSize());
+                        Value baseAddr = irBuilder.buildMul(IntegerType.I32, index1, secondDimSize);
+                        if (symbolLLVMType.equals(new PointerType(IntegerType.I32)))
+                            return irBuilder.buildGEP(symbol.getLlvmObj(), baseAddr);
+                        else
+                            return irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), baseAddr);
+                    }
+                }
+                default -> { // 2
+                    Value index1 = ((Exp) children.get(2)).buildExpIR();
+                    Value index2 = ((Exp) children.get(5)).buildExpIR();
+                    ConstantInt secondDimSize = irBuilder.buildConstantInt(symbol.getSecondDimSize());
+                    Value baseAddr = irBuilder.buildMul(IntegerType.I32, index1, secondDimSize);
+                    Value index = irBuilder.buildAdd(IntegerType.I32, index2, baseAddr);
+                    GEPInst gepInst;
+                    if (symbolLLVMType.equals(new PointerType(IntegerType.I32)))
+                        gepInst = irBuilder.buildGEP(symbol.getLlvmObj(), index);
+                    else
+                        gepInst = irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), index);
+                    return irBuilder.buildLoad(gepInst);
+                }
             }
         }
     }
 
     public Value getLValPointer() {
         Symbol symbol = manager.getSymbol(getIdentity().getVal());
-        if (symbol.getLlvmObj().getType().equals(new PointerType(IntegerType.I32))) {
+        Type symbolLLVMType = symbol.getLlvmObj().getType();
+        if (symbol.getDataType().equals(DataType.INT)) {
             return symbol.getLlvmObj();
         } else {
             if (getReduceDim() == 1) { // real 1d array, index at 2
                 Value index = ((Exp) children.get(2)).buildExpIR();
-                return irBuilder.buildGEP(symbol.getLlvmObj(), index);
+                if (symbolLLVMType.equals(new PointerType(IntegerType.I32))) {
+                    return irBuilder.buildGEP(symbol.getLlvmObj(), index);
+                } else {
+                    return irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), index);
+                }
             } else { // real 2d array, index at 2, 5
                 Value index1 = ((Exp) children.get(2)).buildExpIR();
                 Value index2 = ((Exp) children.get(5)).buildExpIR();
-                Value index = irBuilder.buildMul(IntegerType.I32, index1, index2);
-                return irBuilder.buildGEP(symbol.getLlvmObj(), index);
+                ConstantInt secondDimSize = irBuilder.buildConstantInt(symbol.getSecondDimSize());
+                Value baseAddr = irBuilder.buildMul(IntegerType.I32, index1, secondDimSize);
+                Value index = irBuilder.buildAdd(IntegerType.I32, index2, baseAddr);
+                if (symbolLLVMType.equals(new PointerType(IntegerType.I32)))
+                    return irBuilder.buildGEP(symbol.getLlvmObj(), index);
+                else return irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), index);
             }
         }
     }

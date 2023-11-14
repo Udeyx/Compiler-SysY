@@ -30,7 +30,6 @@ public class GEPInst extends Instruction {
         sb.append(", ");
         sb.append(pointer.getType()).append(" ");
         sb.append(pointer.getName()).append(", ");
-        sb.append("i32 0, ");
         for (int i = 0; i < indexes.size(); i++) {
             sb.append(indexes.get(i).getType()).append(" ");
             sb.append(indexes.get(i).getName());

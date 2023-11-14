@@ -6,6 +6,8 @@ Excalidraw
 testfile.txt
 input.txt
 output.txt
+in.txt
+out.txt
 llvm_ir.txt
 error.txt
 *code.zip

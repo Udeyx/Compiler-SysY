@@ -4,7 +4,7 @@ import midend.ir.Value.Value;
 import util.NodeType;
 import frontend.node.Node;
 
-public class Exp extends Node {
+public class Exp extends Node implements ValueHolder {
     public Exp() {
         super(NodeType.EXP);
     }

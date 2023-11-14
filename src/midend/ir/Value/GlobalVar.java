@@ -1,6 +1,7 @@
 package midend.ir.Value;
 
 import midend.ir.Type.ArrayType;
+import midend.ir.Type.IntegerType;
 import midend.ir.Type.PointerType;
 import midend.ir.Type.Type;
 
@@ -18,7 +19,7 @@ public class GlobalVar extends User {
 
     @Override
     public String toString() {
-        if (initVal.size() == 1) {
+        if (type.equals(new PointerType(IntegerType.I32))) {
             String prefix = getName() + " = dso_local global " + ((PointerType) type).getEleType() + " ";
             return initVal.isEmpty() ? prefix + "0" : prefix + initVal.get(0);
         } else { // 1d array

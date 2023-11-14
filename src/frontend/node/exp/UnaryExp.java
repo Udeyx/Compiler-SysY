@@ -6,17 +6,13 @@ import frontend.node.Terminator;
 import frontend.node.func.FuncRParams;
 import frontend.symbol.FuncSymbol;
 import midend.ir.Type.IntegerType;
-import midend.ir.Value.Argument;
 import midend.ir.Value.ConstantInt;
 import midend.ir.Value.Value;
-import util.DataType;
-import util.ErrorType;
-import util.NodeType;
-import util.TokenType;
+import util.*;
 
 import java.util.ArrayList;
 
-public class UnaryExp extends Node {
+public class UnaryExp extends Node implements ValueHolder {
     public UnaryExp() {
         super(NodeType.UNARYEXP);
     }
@@ -107,7 +103,11 @@ public class UnaryExp extends Node {
                     yield irBuilder.buildSub(IntegerType.I32, zeroCon,
                             ((UnaryExp) children.get(1)).buildExpIR());
                 }
-                default -> irBuilder.buildConstantInt(0); // ! this is '!', should be modified
+                default -> { // !
+                    ConstantInt zeroCon = irBuilder.buildConstantInt(0);
+                    yield irBuilder.buildICmpWithLV(ICmpType.EQ, zeroCon,
+                            ((UnaryExp) children.get(1)).buildExpIR());
+                }
             };
         }
     }

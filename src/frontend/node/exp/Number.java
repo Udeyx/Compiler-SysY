@@ -5,7 +5,7 @@ import frontend.node.Terminator;
 import midend.ir.Value.Value;
 import util.NodeType;
 
-public class Number extends Node {
+public class Number extends Node implements ValueHolder {
     public Number() {
         super(NodeType.NUMBER);
     }

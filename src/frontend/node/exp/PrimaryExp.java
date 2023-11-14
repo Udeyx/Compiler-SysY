@@ -5,7 +5,7 @@ import util.DataType;
 import util.NodeType;
 import frontend.node.Node;
 
-public class PrimaryExp extends Node {
+public class PrimaryExp extends Node implements ValueHolder {
     public PrimaryExp() {
         super(NodeType.PRIMARYEXP);
     }

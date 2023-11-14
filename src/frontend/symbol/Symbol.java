@@ -11,6 +11,7 @@ public class Symbol {
     private final int dim;
     private Value llvmObj;
     private final ArrayList<Integer> initVal;
+    private int secondDimSize;
 
     public Symbol(String name, DataType dataType) {
         this.name = name;
@@ -23,6 +24,7 @@ public class Symbol {
         };
         this.llvmObj = null;
         this.initVal = new ArrayList<>();
+        this.secondDimSize = 0;
     }
 
     public Symbol(String name, int dim) {
@@ -35,6 +37,7 @@ public class Symbol {
             default -> DataType.VOID;
         };
         this.initVal = new ArrayList<>();
+        this.secondDimSize = 0;
     }
 
     public String getName() {
@@ -64,5 +67,13 @@ public class Symbol {
 
     public ArrayList<Integer> getInitVal() {
         return initVal;
+    }
+
+    public int getSecondDimSize() {
+        return secondDimSize;
+    }
+
+    public void setSecondDimSize(int secondDimSize) {
+        this.secondDimSize = secondDimSize;
     }
 }

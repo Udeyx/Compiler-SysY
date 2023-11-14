@@ -1,11 +1,12 @@
 package midend.ir.Value;
 
 import midend.ir.Type.IntegerType;
+import midend.ir.Type.Type;
 
 public class ConstantInt extends Value {
 
-    public ConstantInt(int val) {
-        super(String.valueOf(val), IntegerType.I32);
+    public ConstantInt(Type type, int val) {
+        super(String.valueOf(val), type);
     }
 
     @Override

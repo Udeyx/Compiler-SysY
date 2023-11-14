@@ -1,13 +1,21 @@
 package midend.ir.Type;
 
 
+import java.util.ArrayList;
+
 public class ArrayType extends Type {
     private final Type eleType;
     private final int eleNum;
+    private final ArrayList<Integer> eleSize;
 
-    public ArrayType(Type eleType, int eleNum) {
+    public ArrayType(Type eleType, ArrayList<Integer> eleSize) {
         this.eleType = eleType;
-        this.eleNum = eleNum;
+        this.eleSize = eleSize;
+        int sum = 1;
+        for (int perDimSize : eleSize) {
+            sum *= perDimSize;
+        }
+        this.eleNum = sum;
     }
 
     public Type getEleType() {

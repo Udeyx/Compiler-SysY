@@ -8,7 +8,7 @@ import util.NodeType;
 import frontend.node.Node;
 import util.TokenType;
 
-public class AddExp extends Node {
+public class AddExp extends Node implements ValueHolder {
     public AddExp() {
         super(NodeType.ADDEXP);
     }
@@ -37,13 +37,12 @@ public class AddExp extends Node {
         if (children.size() == 1) {
             return ((MulExp) children.get(0)).buildExpIR();
         } else {
-            if (isAdd()) {
-                return irBuilder.buildAdd(IntegerType.I32, ((AddExp) children.get(0)).buildExpIR(),
-                        ((MulExp) children.get(2)).buildExpIR());
-            } else { // is sub
-                return irBuilder.buildSub(IntegerType.I32, ((AddExp) children.get(0)).buildExpIR(),
-                        ((MulExp) children.get(2)).buildExpIR());
-            }
+            Value x = ((AddExp) children.get(0)).buildExpIR();
+            Value y = ((MulExp) children.get(2)).buildExpIR();
+            if (isAdd())
+                return irBuilder.buildAdd(IntegerType.I32, x, y);
+            else  // is sub
+                return irBuilder.buildSub(IntegerType.I32, x, y);
         }
     }
 

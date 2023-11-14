@@ -1,21 +1,20 @@
 package frontend.node;
 
 import frontend.Token;
+import frontend.node.exp.EqExp;
 import frontend.node.exp.Exp;
+import frontend.node.exp.LOrExp;
 import frontend.node.exp.LVal;
 import frontend.symbol.FuncSymbol;
-import midend.ir.Value.Argument;
-import midend.ir.Value.ConstantInt;
-import midend.ir.Value.Function;
-import midend.ir.Value.Value;
+import midend.ir.Type.IntegerType;
+import midend.ir.Value.*;
 import midend.ir.Value.instruction.CallInst;
-import util.DataType;
-import util.ErrorType;
-import util.NodeType;
-import util.TokenType;
+import midend.ir.Value.instruction.ICmpInst;
+import util.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Stmt extends Node {
     public Stmt() {
@@ -108,6 +107,7 @@ public class Stmt extends Node {
                 } else if (c == '\\' && fmtStr.charAt(i + 1) == 'n') {
                     ConstantInt constChar = irBuilder.buildConstantInt('\n');
                     irBuilder.buildCall(Function.PUTCH, new ArrayList<>(List.of(constChar)));
+                    i++;
                 } else {
                     ConstantInt constChar = irBuilder.buildConstantInt(c);
                     irBuilder.buildCall(Function.PUTCH, new ArrayList<>(List.of(constChar)));
@@ -130,12 +130,155 @@ public class Stmt extends Node {
             manager.addScope();
             super.buildIR();
             manager.delScope();
+        } else if (isIf()) {
+            buildIfIR();
+        } else if (isFor()) {
+            buildForIR();
+        } else if (isContinue()) {
+            irBuilder.buildNoCondBranch(irBuilder.getCurIncreaseBlock());
+        } else if (isBreak()) {
+            irBuilder.buildNoCondBranch(irBuilder.getCurFinalBlock());
         }
     }
+
+    private void buildForIR() {
+        // build the first forStmt
+        if (children.get(2) instanceof ForStmt)
+            children.get(2).buildIR();
+        BasicBlock loopBody = irBuilder.buildBasicBlock();
+        BasicBlock finalBlock = irBuilder.buildBasicBlock();
+        BasicBlock condBlock = irBuilder.buildBasicBlock();
+        BasicBlock increaseBlock = irBuilder.buildBasicBlock();
+        irBuilder.buildNoCondBranch(condBlock); // jump from curBlock to condBlock
+
+        // set the curIncreaseBlock and curFinalBlock
+        BasicBlock preIncreaseBlock = irBuilder.getCurIncreaseBlock();
+        BasicBlock preFinalBlock = irBuilder.getCurFinalBlock();
+        irBuilder.setCurIncreaseBlock(increaseBlock);
+        irBuilder.setCurFinalBlock(finalBlock);
+
+
+        // build cond, set cond to 1 if cond doesn't exist
+        irBuilder.setCurBasicBlock(condBlock);
+        irBuilder.getCurFunction().addBasicBlock(condBlock);
+        // build loop body's IR
+        if (children.stream().noneMatch(child -> child instanceof Cond)) {
+            irBuilder.buildNoCondBranch(loopBody); // jump to loopBody
+        } else { // has implicit cond
+            ArrayList<ArrayList<EqExp>> flatCond = children.stream()
+                    .filter(child -> child instanceof Cond)
+                    .map(child -> ((Cond) child).toFlat())
+                    .toList()
+                    .get(0);
+            buildLOrIR(flatCond, loopBody, finalBlock);
+        }
+        // build loop body's IR
+        irBuilder.setCurBasicBlock(loopBody);
+        irBuilder.getCurFunction().addBasicBlock(loopBody);
+        children.get(children.size() - 1).buildIR();
+        irBuilder.buildNoCondBranch(increaseBlock);
+
+        // build IR for the optional second forStmt
+        irBuilder.setCurBasicBlock(increaseBlock);
+        irBuilder.getCurFunction().addBasicBlock(increaseBlock);
+        if (children.get(children.size() - 3) instanceof ForStmt)
+            children.get(children.size() - 3).buildIR();
+
+        // jump to condBlock
+        irBuilder.buildNoCondBranch(condBlock);
+
+        irBuilder.getCurFunction().addBasicBlock(finalBlock);
+        irBuilder.setCurBasicBlock(finalBlock);
+
+        // clear the curIncreaseBlock and curFinalBlock
+        irBuilder.setCurFinalBlock(preFinalBlock);
+        irBuilder.setCurIncreaseBlock(preIncreaseBlock);
+    }
+
+    private void buildIfIR() {
+        ArrayList<ArrayList<EqExp>> flatCond = ((Cond) children.get(2)).toFlat();
+        BasicBlock startBlock = irBuilder.getCurBasicBlock();
+        BasicBlock trueBlock = irBuilder.buildBasicBlock();
+        BasicBlock finalBlock = irBuilder.buildBasicBlock();
+
+        irBuilder.setCurBasicBlock(trueBlock);
+        children.get(4).buildIR(); // build true stmt
+        irBuilder.buildNoCondBranch(finalBlock);
+
+        if (children.size() < 7) { // no else
+            // start to build cond
+            irBuilder.setCurBasicBlock(startBlock);
+            buildLOrIR(flatCond, trueBlock, finalBlock);
+            irBuilder.getCurFunction().addBasicBlock(trueBlock);
+        } else {
+            BasicBlock falseBlock = irBuilder.buildBasicBlock();
+            irBuilder.setCurBasicBlock(falseBlock);
+            children.get(6).buildIR();
+            irBuilder.buildNoCondBranch(finalBlock);
+
+            // start to build cond
+            irBuilder.setCurBasicBlock(startBlock);
+            buildLOrIR(flatCond, trueBlock, falseBlock);
+            irBuilder.getCurFunction().addBasicBlock(trueBlock);
+            irBuilder.getCurFunction().addBasicBlock(falseBlock);
+        }
+        irBuilder.getCurFunction().addBasicBlock(finalBlock);
+        irBuilder.setCurBasicBlock(finalBlock);
+    }
+
+    private void buildLOrIR(ArrayList<ArrayList<EqExp>> flatCond,
+                            BasicBlock trueBlock, BasicBlock falseBlock) {
+        // alloc a basicBlock for each LAndExp
+        ArrayList<BasicBlock> lAndBlocks = new ArrayList<>();
+        for (int i = 0; i < flatCond.size(); i++) {
+            lAndBlocks.add(irBuilder.buildBasicBlock());
+        }
+
+        // add br to the previous block
+        irBuilder.buildNoCondBranch(lAndBlocks.get(0));
+
+        for (int i = 0; i < flatCond.size() - 1; i++) { // this loop won't reach the last LAndExp
+            irBuilder.setCurBasicBlock(lAndBlocks.get(i));
+            buildLAndIR(flatCond.get(i), trueBlock, lAndBlocks.get(i + 1));
+        }
+        // build IR for the last LAndExp
+        irBuilder.setCurBasicBlock(lAndBlocks.get(lAndBlocks.size() - 1));
+        buildLAndIR(flatCond.get(flatCond.size() - 1), trueBlock, falseBlock);
+    }
+
+    private void buildLAndIR(ArrayList<EqExp> flatCond,
+                             BasicBlock trueBlock, BasicBlock falseBlock) {
+        // alloc a basicBlock for each EqExp except the first one
+        ArrayList<BasicBlock> eqBlocks = new ArrayList<>();
+        eqBlocks.add(irBuilder.getCurBasicBlock());
+        for (int i = 0; i < flatCond.size() - 1; i++) {
+            eqBlocks.add(irBuilder.buildBasicBlock());
+        }
+        for (int i = 0; i < flatCond.size() - 1; i++) { // won't reach the last EqExp
+            irBuilder.setCurBasicBlock(eqBlocks.get(i));
+            Value cond = flatCond.get(i).buildExpIR();
+            ConstantInt zeroCon = irBuilder.buildConstantInt(0);
+            ICmpInst iCmpInst = irBuilder.buildICmpWithLV(ICmpType.NE, cond, zeroCon);
+            irBuilder.buildBranch(iCmpInst, eqBlocks.get(i + 1), falseBlock);
+        }
+        // build IR for the last EqExp
+        irBuilder.setCurBasicBlock(eqBlocks.get(eqBlocks.size() - 1));
+        Value cond = flatCond.get(flatCond.size() - 1).buildExpIR();
+        ConstantInt zeroCon = irBuilder.buildConstantInt(0);
+        ICmpInst iCmpInst = irBuilder.buildICmpWithLV(ICmpType.NE, cond, zeroCon);
+        irBuilder.buildBranch(iCmpInst, trueBlock, falseBlock);
+        eqBlocks.forEach(irBuilder.getCurFunction()::addBasicBlock);
+    }
+
 
     public boolean isReturn() { // return
         return (children.get(0) instanceof Terminator)
                 && ((Terminator) children.get(0)).getVal().getType().equals(TokenType.RETURNTK);
+    }
+
+    private boolean isIf() {// if
+        return children.get(0) instanceof Terminator
+                && ((Terminator) children.get(0)).getVal().getType().equals(TokenType.IFTK);
     }
 
     private boolean isAssignOrGetInt() {

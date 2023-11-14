@@ -3,6 +3,7 @@ package frontend.node.func;
 import frontend.Token;
 import frontend.node.Node;
 import frontend.node.Terminator;
+import frontend.node.exp.ConstExp;
 import frontend.symbol.VarSymbol;
 import midend.ir.Type.IntegerType;
 import midend.ir.Type.PointerType;
@@ -46,6 +47,10 @@ public class FuncFParam extends Node {
         } else {
             varSymbol.setLlvmObj(param);
             manager.addSymbol(varSymbol);
+            if (children.stream().filter(child -> child instanceof ConstExp)
+                    .count() == 1) { // 2d array
+                varSymbol.setSecondDimSize(children.get(5).evaluate());
+            }
         }
     }
 

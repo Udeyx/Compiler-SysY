@@ -6,7 +6,7 @@ import midend.ir.Value.Value;
 import util.NodeType;
 import frontend.node.Node;
 
-public class MulExp extends Node {
+public class MulExp extends Node implements ValueHolder {
     public MulExp() {
         super(NodeType.MULEXP);
     }
@@ -35,18 +35,15 @@ public class MulExp extends Node {
         if (children.size() == 1) {
             return ((UnaryExp) children.get(0)).buildExpIR();
         } else {
+            Value x = ((MulExp) children.get(0)).buildExpIR();
+            Value y = ((UnaryExp) children.get(2)).buildExpIR();
             return switch (((Terminator) children.get(1)).getVal().getType()) {
-                case MULT -> irBuilder.buildMul(IntegerType.I32, ((MulExp) children.get(0)).buildExpIR(),
-                        ((UnaryExp) children.get(2)).buildExpIR());
-                case DIV -> irBuilder.buildSdiv(IntegerType.I32, ((MulExp) children.get(0)).buildExpIR(),
-                        ((UnaryExp) children.get(2)).buildExpIR());
+                case MULT -> irBuilder.buildMul(IntegerType.I32, x, y);
+                case DIV -> irBuilder.buildSdiv(IntegerType.I32, x, y);
                 default -> {
-                    Value xDivY = irBuilder.buildSdiv(IntegerType.I32, ((MulExp) children.get(0)).buildExpIR(),
-                            ((UnaryExp) children.get(2)).buildExpIR());
-                    Value xDivYMulY = irBuilder.buildMul(IntegerType.I32, xDivY,
-                            ((UnaryExp) children.get(2)).buildExpIR());
-                    yield irBuilder.buildSub(IntegerType.I32, ((MulExp) children.get(0)).buildExpIR(),
-                            xDivYMulY);
+                    Value xDivY = irBuilder.buildSdiv(IntegerType.I32, x, y);
+                    Value xDivYMulY = irBuilder.buildMul(IntegerType.I32, xDivY, y);
+                    yield irBuilder.buildSub(IntegerType.I32, x, xDivYMulY);
                 }
             };
         }

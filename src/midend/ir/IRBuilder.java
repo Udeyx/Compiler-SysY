@@ -6,6 +6,7 @@ import frontend.symbol.SymbolManager;
 import midend.ir.Type.*;
 import midend.ir.Value.*;
 import midend.ir.Value.instruction.*;
+import util.ICmpType;
 
 import java.util.ArrayList;
 
@@ -16,6 +17,8 @@ public class IRBuilder {
     private final Module module;
     private Function curFunction;
     private BasicBlock curBasicBlock;
+    private BasicBlock curIncreaseBlock;
+    private BasicBlock curFinalBlock;
 
     private IRBuilder() {
         this.module = Module.getInstance();
@@ -23,6 +26,8 @@ public class IRBuilder {
         this.nameSpace = NameSpace.getInstance();
         this.curFunction = null;
         this.curBasicBlock = null;
+        this.curIncreaseBlock = null;
+        this.curFinalBlock = null;
     }
 
     public static IRBuilder getInstance() {
@@ -45,6 +50,26 @@ public class IRBuilder {
         return curBasicBlock;
     }
 
+    public void setCurBasicBlock(BasicBlock curBasicBlock) {
+        this.curBasicBlock = curBasicBlock;
+    }
+
+    public BasicBlock getCurFinalBlock() {
+        return curFinalBlock;
+    }
+
+    public void setCurFinalBlock(BasicBlock curFinalBlock) {
+        this.curFinalBlock = curFinalBlock;
+    }
+
+    public BasicBlock getCurIncreaseBlock() {
+        return curIncreaseBlock;
+    }
+
+    public void setCurIncreaseBlock(BasicBlock curIncreaseBlock) {
+        this.curIncreaseBlock = curIncreaseBlock;
+    }
+
     public GlobalVar buildGlobalVar(PointerType type, boolean isConst, ArrayList<Integer> initVal) {
         return new GlobalVar(nameSpace.allocGvName(), type, isConst, initVal);
     }
@@ -52,7 +77,9 @@ public class IRBuilder {
     public Function buildFunction(String name, Type type) {
         Function function = new Function(nameSpace.allocFuncName(name), type);
         nameSpace.addFunc(function);
-        function.addBasicBlock(buildBasicBlock());
+        BasicBlock firstBlock = buildBasicBlock();
+        curBasicBlock = firstBlock;
+        function.addBasicBlock(firstBlock);
         return function;
     }
 
@@ -63,12 +90,15 @@ public class IRBuilder {
     }
 
     public BasicBlock buildBasicBlock() {
-        curBasicBlock = new BasicBlock(nameSpace.allocBBName());
-        return curBasicBlock;
+        return new BasicBlock(nameSpace.allocBBName());
     }
 
     public ConstantInt buildConstantInt(int val) {
-        return new ConstantInt(val);
+        return buildConstantInt(IntegerType.I32, val);
+    }
+
+    public ConstantInt buildConstantInt(Type type, int val) {
+        return new ConstantInt(type, val);
     }
 
     public Value buildLV(Type type) {
@@ -106,10 +136,34 @@ public class IRBuilder {
         return gepInst;
     }
 
-    public GEPInst buildGEP(Value pointer, int index) {
-        ConstantInt constIndex = buildConstantInt(index);
+
+    public GEPInst buildGEP(Value pointer, ArrayList<Integer> indices) {
         Value lv = buildLV(new PointerType(IntegerType.I32));
         GEPInst gepInst = new GEPInst(pointer, lv);
+        for (int index : indices) {
+            ConstantInt constIndex = buildConstantInt(index);
+            gepInst.addIndex(constIndex);
+        }
+        curBasicBlock.addInst(gepInst);
+        return gepInst;
+    }
+
+    public GEPInst buildGEPWithZeroPrep(Value pointer, Value index) {
+        Value lv = buildLV(new PointerType(IntegerType.I32));
+        GEPInst gepInst = new GEPInst(pointer, lv);
+        ConstantInt zeroCon = buildConstantInt(0);
+        gepInst.addIndex(zeroCon);
+        gepInst.addIndex(index);
+        curBasicBlock.addInst(gepInst);
+        return gepInst;
+    }
+
+    public GEPInst buildGEPWithZeroPrep(Value pointer, int index) {
+        Value lv = buildLV(new PointerType(IntegerType.I32));
+        GEPInst gepInst = new GEPInst(pointer, lv);
+        ConstantInt zeroCon = buildConstantInt(0);
+        ConstantInt constIndex = buildConstantInt(index);
+        gepInst.addIndex(zeroCon);
         gepInst.addIndex(constIndex);
         curBasicBlock.addInst(gepInst);
         return gepInst;
@@ -144,18 +198,21 @@ public class IRBuilder {
         return callInst;
     }
 
-    public CallInst buildCall(Function function, ArrayList<Value> values, Value tar) {
-        ArrayList<Argument> arguments = new ArrayList<>();
-        values.stream().map(Argument::new).forEach(arguments::add);
-        CallInst callInst;
-        if (((FunctionType) function.getType()).getReturnType().equals(VoidType.VOID)) {
-            callInst = new CallInst(function, arguments, null);
-        } else {
-            callInst = new CallInst(function, arguments, tar);
-        }
-        curBasicBlock.addInst(callInst);
-        return callInst;
+    public ICmpInst buildICmp(ICmpType iCmpType, Value operand1, Value operand2, Value tar) {
+        ICmpInst iCmpInst = new ICmpInst(iCmpType, operand1, operand2, tar);
+        curBasicBlock.addInst(iCmpInst);
+        return iCmpInst;
     }
+
+    public ICmpInst buildICmpWithLV(ICmpType iCmpType, Value operand1, Value operand2) {
+        Value lv = buildLV(IntegerType.I1);
+        Value fixedOp1 = operand1.getType().equals(IntegerType.I32) ? operand1 :
+                buildZExtWithLV(operand1, IntegerType.I32);
+        Value fixedOp2 = operand2.getType().equals(IntegerType.I32) ? operand2 :
+                buildZExtWithLV(operand2, IntegerType.I32);
+        return buildICmp(iCmpType, fixedOp1, fixedOp2, lv);
+    }
+
 
     public AddInst buildAdd(Type type, Value operand1, Value operand2, Value tar) {
         AddInst addInst = new AddInst(type, operand1, operand2, tar);
@@ -208,5 +265,28 @@ public class IRBuilder {
         curBasicBlock.addInst(returnInst);
         return returnInst;
     }
+
+    public BranchInst buildBranch(Value cond, BasicBlock trueBlock, BasicBlock falseBlock) {
+        BranchInst branchInst = new BranchInst(cond, trueBlock, falseBlock);
+        curBasicBlock.addInst(branchInst);
+        return branchInst;
+    }
+
+    public BranchInst buildNoCondBranch(BasicBlock tarBlock) {
+        Value oneI1 = buildConstantInt(IntegerType.I1, 1);
+        return buildBranch(oneI1, tarBlock, tarBlock);
+    }
+
+    public ZExtInst buildZExt(Value src, Value tar) {
+        ZExtInst zExtInst = new ZExtInst(src, tar);
+        curBasicBlock.addInst(zExtInst);
+        return zExtInst;
+    }
+
+    public ZExtInst buildZExtWithLV(Value src, Type tarType) {
+        Value lv = buildLV(tarType);
+        return buildZExt(src, lv);
+    }
+
 
 }
