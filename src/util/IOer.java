@@ -1,9 +1,9 @@
 package util;
 
+import backend.Target;
 import frontend.Handler;
 import frontend.Token;
 import frontend.node.CompUnit;
-import midend.ir.IRBuilder;
 import midend.ir.Module;
 
 import java.io.File;
@@ -66,7 +66,18 @@ public class IOer {
         try {
             PrintStream ps = new PrintStream("llvm_ir.txt");
             System.setOut(ps);
-            System.out.println(IRBuilder.getInstance().getModule());
+            System.out.println(Module.getInstance());
+            ps.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("exception in printIR");
+        }
+    }
+
+    public static void printMIPS() {
+        try {
+            PrintStream ps = new PrintStream("mips.txt");
+            System.setOut(ps);
+            System.out.println(Target.getInstance());
             ps.close();
         } catch (FileNotFoundException e) {
             System.out.println("exception in printIR");

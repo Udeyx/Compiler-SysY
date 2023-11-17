@@ -1,7 +1,6 @@
 package midend.ir.Value.instruction;
 
 import midend.ir.Type.PointerType;
-import midend.ir.Type.Type;
 
 public class AllocaInst extends Instruction {
 
@@ -12,5 +11,11 @@ public class AllocaInst extends Instruction {
     @Override
     public String toString() {
         return name + " = alloca " + ((PointerType) type).getEleType();
+    }
+
+    @Override
+    public void buildMIPS() {
+        super.buildMIPS();
+        mipsBuilder.allocStackSpace(name);
     }
 }

@@ -29,4 +29,10 @@ public class BasicBlock extends Value {
         }
         return sb.toString();
     }
+
+    @Override
+    public void buildMIPS() {
+        mipsBuilder.buildLabel(name);
+        instructions.forEach(Instruction::buildMIPS);
+    }
 }

@@ -4,6 +4,7 @@ import midend.ir.Type.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,5 +66,22 @@ public class Function extends User {
         );
         sb.append("}\n");
         return sb.toString();
+    }
+
+    @Override
+    public void buildMIPS() {
+        if (name.equals("@getint") || name.equals("@putint")
+                || name.equals("@putch") || name.equals("@putstr")) return;
+
+        // clear name space and stack
+        mipsBuilder.enterFunction();
+        mipsBuilder.buildLabel(name);
+
+        // 把参数的名字加入符号表
+        for (int i = params.size() - 1; i >= 0; i--)
+            mipsBuilder.allocStackSpace(params.get(i).getName());
+
+        // build所有block
+        basicBlocks.forEach(BasicBlock::buildMIPS);
     }
 }

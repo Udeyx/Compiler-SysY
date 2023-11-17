@@ -7,9 +7,9 @@ import util.BOType;
 public class BinaryOperator extends Instruction {
 
     private final BOType boType;
-    private final Value operand1;
-    private final Value operand2;
-    private final Value tar;
+    protected final Value operand1;
+    protected final Value operand2;
+    protected final Value tar;
 
     public BinaryOperator(Type type, Value operand1, Value operand2, Value tar, BOType boType) {
         super(tar.getName(), type);

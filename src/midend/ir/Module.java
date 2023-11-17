@@ -1,5 +1,6 @@
 package midend.ir;
 
+import backend.MIPSBuilder;
 import midend.ir.Value.Function;
 import midend.ir.Value.GlobalVar;
 
@@ -42,5 +43,15 @@ public class Module {
                 .collect(Collectors.joining("\n")) + "\n"
                 + functions.stream().map(Function::toString)
                 .collect(Collectors.joining("\n"));
+    }
+
+    public void buildMIPS() {
+        MIPSBuilder.getInstance().buildData();
+        globalVars.forEach(GlobalVar::buildMIPS);
+        MIPSBuilder.getInstance().buildText();
+        MIPSBuilder.getInstance().buildJal("main");
+        MIPSBuilder.getInstance().buildJ("end");
+        functions.forEach(Function::buildMIPS);
+        MIPSBuilder.getInstance().buildLabel("end");
     }
 }

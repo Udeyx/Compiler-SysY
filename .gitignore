@@ -9,6 +9,7 @@ output.txt
 in.txt
 out.txt
 llvm_ir.txt
+mips.txt
 error.txt
 *code.zip
 *META-INF

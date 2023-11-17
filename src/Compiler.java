@@ -3,6 +3,7 @@ import frontend.Lexer;
 import frontend.Parser;
 import frontend.Token;
 import frontend.node.CompUnit;
+import midend.ir.Module;
 import util.IOer;
 
 import java.util.ArrayList;
@@ -27,12 +28,16 @@ public class Compiler {
         // generate llvm representation
         compUnit.buildIR();
 
+        // generate mips asm
+        //Module.getInstance().buildMIPS();
+
         // output
         switch (outputType) {
             case "lex" -> IOer.printLex(tokens);
             case "parse" -> IOer.printParse(compUnit);
             case "error" -> IOer.printError();
             case "ir" -> IOer.printIR();
+            case "mips" -> IOer.printMIPS();
         }
     }
 }
