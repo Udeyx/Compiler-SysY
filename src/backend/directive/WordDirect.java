@@ -15,9 +15,14 @@ public class WordDirect extends Direct {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(name.substring(1)).append(": .word ");
-        for (int i = val.size() - 1; i >= 0; i--) {
+//        for (int i = val.size() - 1; i >= 0; i--) {
+//            sb.append(val.get(i));
+//            if (i > 0)
+//                sb.append(", ");
+//        }
+        for (int i = 0; i < val.size(); i++) {
             sb.append(val.get(i));
-            if (i > 0)
+            if (i < val.size() - 1)
                 sb.append(", ");
         }
         return sb.toString();

@@ -9,7 +9,10 @@ public enum OpCode {
     BNE("bne"),
     ADDI("addi"),
     J("j"), JAL("jal"), JR("jr"),
-    LI("li"), LA("la");
+    LI("li"), LA("la"),
+    SGE("sge"), SGT("sgt"),
+    SLE("sle"), SLT("slt"),
+    SEQ("seq"), SNE("sne");
     private final String val;
 
     OpCode(String val) {

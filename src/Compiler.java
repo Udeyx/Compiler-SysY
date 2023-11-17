@@ -1,7 +1,4 @@
-import frontend.Iter;
-import frontend.Lexer;
-import frontend.Parser;
-import frontend.Token;
+import frontend.*;
 import frontend.node.CompUnit;
 import midend.ir.Module;
 import util.IOer;
@@ -10,7 +7,7 @@ import java.util.ArrayList;
 
 public class Compiler {
     public static void main(String[] args) {
-        String outputType = "ir";
+        String outputType = "mips";
         String filePath = "testfile.txt";
 
         // read source file to source string
@@ -24,12 +21,16 @@ public class Compiler {
 
         // check error
         compUnit.check();
+        if (Handler.getInstance().hasError()) {
+            IOer.printError();
+            return;
+        }
 
         // generate llvm representation
         compUnit.buildIR();
 
         // generate mips asm
-        //Module.getInstance().buildMIPS();
+        Module.getInstance().buildMIPS();
 
         // output
         switch (outputType) {

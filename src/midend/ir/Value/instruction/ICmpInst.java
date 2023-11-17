@@ -1,9 +1,11 @@
 package midend.ir.Value.instruction;
 
+import backend.Register;
 import midend.ir.Type.IntegerType;
-import midend.ir.Type.Type;
+import midend.ir.Value.ConstantInt;
 import midend.ir.Value.Value;
 import util.ICmpType;
+import util.OpCode;
 
 public class ICmpInst extends Instruction {
     private final Value operand1;
@@ -23,5 +25,36 @@ public class ICmpInst extends Instruction {
     public String toString() {
         return tar.getName() + " = icmp " + iCmpType + " " + operand1.getType() + " "
                 + operand1.getName() + ", " + operand2.getName();
+    }
+
+    @Override
+    public void buildMIPS() {
+        super.buildMIPS();
+        if (operand1 instanceof ConstantInt) {
+            mipsBuilder.buildLi(Register.T1, Integer.parseInt(operand1.getName()));
+        } else {
+            int op1Pos = mipsBuilder.getSymbolPos(operand1.getName());
+            mipsBuilder.buildLw(Register.T1, op1Pos, Register.SP);
+        }
+
+        if (operand2 instanceof ConstantInt) {
+            mipsBuilder.buildLi(Register.T2, Integer.parseInt(operand2.getName()));
+        } else {
+            int op2Pos = mipsBuilder.getSymbolPos(operand2.getName());
+            mipsBuilder.buildLw(Register.T2, op2Pos, Register.SP);
+        }
+
+        OpCode opCode = switch (iCmpType) {
+            case EQ -> OpCode.SEQ;
+            case NE -> OpCode.SNE;
+            case SGT -> OpCode.SGT;
+            case SGE -> OpCode.SGE;
+            case SLT -> OpCode.SLT;
+            default -> OpCode.SLE;
+        };
+
+        mipsBuilder.buildCmp(Register.T0, Register.T1, Register.T2, opCode);
+        int tarPos = mipsBuilder.allocStackSpace(tar.getName());
+        mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
     }
 }

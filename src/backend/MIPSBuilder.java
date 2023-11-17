@@ -5,12 +5,17 @@ import backend.directive.SpaceDirect;
 import backend.directive.TextDirect;
 import backend.directive.WordDirect;
 import backend.instr.*;
+import backend.instr.ext.CMPInstr;
+import backend.instr.ext.LAInstr;
+import backend.instr.ext.LIInstr;
+import backend.instr.i.BNEInstr;
 import backend.instr.j.JALInstr;
 import backend.instr.j.JInstr;
 import backend.instr.j.JRInstr;
 import backend.instr.r.*;
 import backend.instr.i.LWInstr;
 import backend.instr.i.SWInstr;
+import util.OpCode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +48,14 @@ public class MIPSBuilder {
     public int allocStackSpace(String name) {
         symbolTable.put(name, stackTop);
         stackTop -= 4;
+        return stackTop + 4;
+    }
+
+    // 通过这个函数获得的是申请出空间最后一个元素的地址
+    // 也就是最靠近栈顶的地址
+    // 也就是偏移量最负的地址
+    public int allocAnonymousStackSpace(int size) {
+        stackTop -= size;
         return stackTop + 4;
     }
 
@@ -136,5 +149,17 @@ public class MIPSBuilder {
 
     public void buildSyscall() {
         target.addInstr(new SyscallInstr());
+    }
+
+    public void buildBne(Register rs, Register rt, String label) {
+        target.addInstr(new BNEInstr(rs, rt, label));
+    }
+
+    public void buildCmp(Register rd, Register rs, Register rt, OpCode opCode) {
+        target.addInstr(new CMPInstr(rd, rs, rt, opCode));
+    }
+
+    public void buildSll(Register rd, Register rt, int shAmt) {
+        target.addInstr(new SLLInstr(rd, rt, shAmt));
     }
 }

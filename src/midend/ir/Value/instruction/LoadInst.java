@@ -21,6 +21,10 @@ public class LoadInst extends Instruction {
         return tar.getName() + " = load " + type + ", " + src.getType() + " " + src.getName();
     }
 
+    /**
+     * 对于普通的i32*，要lw两次，第一次取出指针指的地址
+     * 第二次从对应地址中取出值
+     */
     @Override
     public void buildMIPS() {
         super.buildMIPS();
@@ -30,7 +34,8 @@ public class LoadInst extends Instruction {
             mipsBuilder.buildLw(Register.T0, 0, Register.T1);
         } else {
             int srcPos = mipsBuilder.getSymbolPos(src.getName());
-            mipsBuilder.buildLw(Register.T0, srcPos, Register.SP);
+            mipsBuilder.buildLw(Register.T1, srcPos, Register.SP);
+            mipsBuilder.buildLw(Register.T0, 0, Register.T1);
         }
         int tarPos = mipsBuilder.allocStackSpace(tar.getName());
         mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);

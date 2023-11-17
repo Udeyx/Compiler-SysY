@@ -20,6 +20,10 @@ public class Handler {
         errors.add(error);
     }
 
+    public boolean hasError() {
+        return !errors.isEmpty();
+    }
+
     @Override
     public String toString() {
         errors.sort(Comparator.comparingInt(Error::getLineNum));

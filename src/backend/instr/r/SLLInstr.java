@@ -6,7 +6,7 @@ import util.OpCode;
 public class SLLInstr extends RInstr {
     private final int shAmt;
 
-    public SLLInstr(Register rt, Register rd, int shAmt) {
+    public SLLInstr(Register rd, Register rt, int shAmt) {
         super(OpCode.SLL, Register.ZERO, rt, rd);
         this.shAmt = shAmt;
     }

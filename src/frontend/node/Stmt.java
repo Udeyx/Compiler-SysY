@@ -197,30 +197,36 @@ public class Stmt extends Node {
 
     private void buildIfIR() {
         ArrayList<ArrayList<EqExp>> flatCond = ((Cond) children.get(2)).toFlat();
-        BasicBlock startBlock = irBuilder.getCurBasicBlock();
         BasicBlock trueBlock = irBuilder.buildBasicBlock();
         BasicBlock finalBlock = irBuilder.buildBasicBlock();
 
-        irBuilder.setCurBasicBlock(trueBlock);
-        children.get(4).buildIR(); // build true stmt
-        irBuilder.buildNoCondBranch(finalBlock);
-
         if (children.size() < 7) { // no else
             // start to build cond
-            irBuilder.setCurBasicBlock(startBlock);
             buildLOrIR(flatCond, trueBlock, finalBlock);
+
+            // set and build true block
+            irBuilder.setCurBasicBlock(trueBlock);
             irBuilder.getCurFunction().addBasicBlock(trueBlock);
-        } else {
-            BasicBlock falseBlock = irBuilder.buildBasicBlock();
-            irBuilder.setCurBasicBlock(falseBlock);
-            children.get(6).buildIR();
+            children.get(4).buildIR(); // build true stmt
             irBuilder.buildNoCondBranch(finalBlock);
 
+        } else {
+            BasicBlock falseBlock = irBuilder.buildBasicBlock();
+
             // start to build cond
-            irBuilder.setCurBasicBlock(startBlock);
             buildLOrIR(flatCond, trueBlock, falseBlock);
+
+            // set and build true block
+            irBuilder.setCurBasicBlock(trueBlock);
             irBuilder.getCurFunction().addBasicBlock(trueBlock);
+            children.get(4).buildIR(); // build true stmt
+            irBuilder.buildNoCondBranch(finalBlock);
+
+            // set and build false block
+            irBuilder.setCurBasicBlock(falseBlock);
             irBuilder.getCurFunction().addBasicBlock(falseBlock);
+            children.get(6).buildIR();
+            irBuilder.buildNoCondBranch(finalBlock);
         }
         irBuilder.getCurFunction().addBasicBlock(finalBlock);
         irBuilder.setCurBasicBlock(finalBlock);

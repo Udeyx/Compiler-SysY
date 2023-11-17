@@ -36,8 +36,9 @@ public class StoreInst extends Instruction {
             mipsBuilder.buildLa(Register.T1, tar.getName());
             mipsBuilder.buildSw(Register.T0, 0, Register.T1);
         } else {
-            int tarPos = mipsBuilder.getSymbolPos(tar.getName());
-            mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
+            int pointerPos = mipsBuilder.getSymbolPos(tar.getName());
+            mipsBuilder.buildLw(Register.T1, pointerPos, Register.SP);
+            mipsBuilder.buildSw(Register.T0, 0, Register.T1);
         }
     }
 }

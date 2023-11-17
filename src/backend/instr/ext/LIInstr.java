@@ -1,6 +1,7 @@
-package backend.instr;
+package backend.instr.ext;
 
 import backend.Register;
+import backend.instr.Instr;
 import util.OpCode;
 
 public class LIInstr extends Instr {
