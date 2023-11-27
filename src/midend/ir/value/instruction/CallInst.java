@@ -63,6 +63,13 @@ public class CallInst extends Instruction {
             mipsBuilder.buildLi(Register.V0, 11);
             mipsBuilder.buildSyscall();
             return;
+        } else if (function.equals(Function.PUTSTR)) {
+            Argument realArg = arguments.get(arguments.size() - 1);
+            int srcPos = mipsBuilder.getSymbolPos(realArg.getName());
+            mipsBuilder.buildLw(Register.A0, srcPos, Register.SP);
+            mipsBuilder.buildLi(Register.V0, 4);
+            mipsBuilder.buildSyscall();
+            return;
         }
 
         // 先压sp和ra

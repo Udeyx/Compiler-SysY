@@ -72,7 +72,6 @@ public class FuncDef extends Node {
         FunctionType functionType = new FunctionType(argumentTypes, returnType);
         Function function = irBuilder.buildFunction(getIdentity().getVal(), functionType);
         funcSymbol.setLlvmObj(function);
-        module.addFunction(function);
 
         // enter funcDef
         enter(true);

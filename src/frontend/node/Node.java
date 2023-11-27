@@ -16,7 +16,6 @@ public class Node {
     private final NodeType nodeType;
     protected final ArrayList<Node> children;
     protected final SymbolManager manager;
-    protected final Module module;
     protected final IRBuilder irBuilder;
 
     public Node(NodeType nodeType) {
@@ -24,7 +23,6 @@ public class Node {
         this.children = new ArrayList<>();
         this.manager = SymbolManager.getInstance();
         this.irBuilder = IRBuilder.getInstance();
-        this.module = Module.getInstance();
     }
 
     public void addChild(Node node) {

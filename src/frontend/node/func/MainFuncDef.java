@@ -62,7 +62,6 @@ public class MainFuncDef extends Node {
         FunctionType functionType = new FunctionType(new ArrayList<>(), returnType);
         Function function = irBuilder.buildFunction("main", functionType);
         funcSymbol.setLlvmObj(function);
-        module.addFunction(function);
 
         // enter funcDef
         enter(true);

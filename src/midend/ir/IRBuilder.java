@@ -69,7 +69,17 @@ public class IRBuilder {
     }
 
     public GlobalVar buildGlobalVar(PointerType type, boolean isConst, ArrayList<Integer> initVal) {
-        return new GlobalVar(nameSpace.allocGvName(), type, isConst, initVal);
+        GlobalVar globalVar = new GlobalVar(nameSpace.allocGvName(), type, isConst, initVal);
+        module.addGlobalVar(globalVar);
+        return globalVar;
+    }
+
+    public StringLiteral buildStringLiteral(String content) {
+        StringLiteral stringLiteral = new StringLiteral(nameSpace.allocSlName(),
+                new PointerType(new ArrayType(IntegerType.I8, content.length() + 1)),
+                content);
+        module.addStringLiteral(stringLiteral);
+        return stringLiteral;
     }
 
     public Function buildFunction(String name, Type type) {
@@ -78,6 +88,7 @@ public class IRBuilder {
         BasicBlock firstBlock = buildBasicBlock();
         curBasicBlock = firstBlock;
         function.addBasicBlock(firstBlock);
+        module.addFunction(function);
         return function;
     }
 
@@ -158,6 +169,17 @@ public class IRBuilder {
 
     public GEPInst buildGEPWithZeroPrep(Value pointer, int index) {
         Value lv = buildLV(new PointerType(IntegerType.I32));
+        GEPInst gepInst = new GEPInst(pointer, lv);
+        ConstantInt zeroCon = buildConstantInt(0);
+        ConstantInt constIndex = buildConstantInt(index);
+        gepInst.addIndex(zeroCon);
+        gepInst.addIndex(constIndex);
+        curBasicBlock.addInst(gepInst);
+        return gepInst;
+    }
+
+    public GEPInst buildGEPForPutStr(Value pointer, int index) {
+        Value lv = buildLV(new PointerType(IntegerType.I8));
         GEPInst gepInst = new GEPInst(pointer, lv);
         ConstantInt zeroCon = buildConstantInt(0);
         ConstantInt constIndex = buildConstantInt(index);

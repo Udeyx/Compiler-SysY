@@ -1,9 +1,6 @@
 package backend;
 
-import backend.directive.DataDirect;
-import backend.directive.SpaceDirect;
-import backend.directive.TextDirect;
-import backend.directive.WordDirect;
+import backend.directive.*;
 import backend.instr.*;
 import backend.instr.ext.CMPInstr;
 import backend.instr.ext.LAInstr;
@@ -65,6 +62,10 @@ public class MIPSBuilder {
 
     public void buildWord(String name, ArrayList<Integer> val) {
         target.addDirect(new WordDirect(name, val));
+    }
+
+    public void buildAsciiz(String name, String content) {
+        target.addDirect(new AsciizDirect(name, content));
     }
 
     public void buildSpace(String name, int eleNum) {

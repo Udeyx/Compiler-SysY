@@ -38,12 +38,11 @@ public class VarDef extends Node {
 
     @Override
     public void buildIR() {
-        Type eleType = getDim() == 0 ? IntegerType.I32 : new ArrayType(IntegerType.I32, getEleSize());
+        Type eleType = getDim() == 0 ? IntegerType.I32 : new ArrayType(IntegerType.I32, getEleNum());
         PointerType type = new PointerType(eleType);
         if (manager.isInGlobal()) {
             ArrayList<Integer> initVal = getInitVal();
             GlobalVar globalVar = irBuilder.buildGlobalVar(type, false, initVal);
-            module.addGlobalVar(globalVar);
             varSymbol.setLlvmObj(globalVar);
             varSymbol.setInitVal(initVal);
             manager.addSymbol(varSymbol);
@@ -88,11 +87,12 @@ public class VarDef extends Node {
         return ((InitVal) children.get(children.size() - 1)).getInitVal(getDim());
     }
 
-    private ArrayList<Integer> getEleSize() {
-        ArrayList<Integer> eleSize = new ArrayList<>();
-        children.stream().filter(child -> child instanceof ConstExp)
-                .map(child -> ((ConstExp) child).evaluate())
-                .forEach(eleSize::add);
-        return eleSize;
+    private int getEleNum() {
+        int eleNum = 1;
+        for (Node child : children) {
+            if (child instanceof ConstExp)
+                eleNum *= child.evaluate();
+        }
+        return eleNum;
     }
 }

@@ -38,11 +38,10 @@ public class ConstDef extends Node {
     @Override
     public void buildIR() {
         ArrayList<Integer> initVal = getInitVal();
-        Type eleType = getDim() == 0 ? IntegerType.I32 : new ArrayType(IntegerType.I32, getEleSize());
+        Type eleType = getDim() == 0 ? IntegerType.I32 : new ArrayType(IntegerType.I32, getEleNum());
         PointerType type = new PointerType(eleType);
         if (manager.isInGlobal()) {
             GlobalVar globalVar = irBuilder.buildGlobalVar(type, true, initVal);
-            module.addGlobalVar(globalVar);
             conSymbol.setLlvmObj(globalVar);
             conSymbol.setInitVal(initVal);
             manager.addSymbol(conSymbol);
@@ -71,12 +70,13 @@ public class ConstDef extends Node {
         }
     }
 
-    private ArrayList<Integer> getEleSize() {
-        ArrayList<Integer> eleSize = new ArrayList<>();
-        children.stream().filter(child -> child instanceof ConstExp)
-                .map(Node::evaluate)
-                .forEach(eleSize::add);
-        return eleSize;
+    private int getEleNum() {
+        int eleNum = 1;
+        for (Node child : children) {
+            if (child instanceof ConstExp)
+                eleNum *= child.evaluate();
+        }
+        return eleNum;
     }
 
     private int getDim() {

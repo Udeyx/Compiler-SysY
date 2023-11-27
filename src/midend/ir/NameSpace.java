@@ -10,12 +10,14 @@ public class NameSpace {
     private int gvNum;
     private HashMap<Function, Integer> lvNum;
     private int bbNum;
+    private int slNum;
 
     private NameSpace() {
         this.funcNum = 0;
         this.gvNum = 0;
         this.lvNum = new HashMap<>();
         this.bbNum = 0;
+        this.slNum = 0;
     }
 
     public static NameSpace getInstance() {
@@ -26,6 +28,12 @@ public class NameSpace {
         String gvName = "@gv" + gvNum;
         gvNum++;
         return gvName;
+    }
+
+    public String allocSlName() {
+        String slName = "@s" + slNum;
+        slNum++;
+        return slName;
     }
 
     public String allocBBName() {

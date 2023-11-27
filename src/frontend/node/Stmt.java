@@ -5,6 +5,7 @@ import frontend.node.exp.EqExp;
 import frontend.node.exp.Exp;
 import frontend.node.exp.LVal;
 import frontend.symbol.FuncSymbol;
+import midend.ir.type.ArrayType;
 import midend.ir.value.*;
 import midend.ir.value.instruction.CallInst;
 import midend.ir.value.instruction.ICmpInst;
@@ -12,6 +13,7 @@ import util.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Stmt extends Node {
     public Stmt() {
@@ -89,26 +91,39 @@ public class Stmt extends Node {
             irBuilder.buildStore(tempVal, tar);
         } else if (isPrintf()) {
             String fmtStr = ((Terminator) children.get(2)).getVal().getVal();
-            ArrayList<Exp> realArgs = new ArrayList<>();
-            children.stream().filter(child -> child instanceof Exp)
-                    .map(child -> (Exp) child)
-                    .forEach(realArgs::add);
+            ArrayList<Exp> realArgs = new ArrayList<>(
+                    children.stream()
+                            .filter(child -> child instanceof Exp)
+                            .map(child -> (Exp) child)
+                            .toList());
             int curArgPos = 0;
+            StringBuilder curStr = new StringBuilder();
             for (int i = 1; i < fmtStr.length() - 1; i++) {
                 char c = fmtStr.charAt(i);
                 if (c == '%' && fmtStr.charAt(i + 1) == 'd') {
+                    // print the str before %d if curStr is not empty
+                    if (!curStr.isEmpty()) {
+                        Value sl = irBuilder.buildStringLiteral(curStr.toString());
+                        Value slPtr = irBuilder.buildGEPForPutStr(sl, 0);
+                        irBuilder.buildCall(Function.PUTSTR, new ArrayList<>(List.of(slPtr)));
+                        curStr = new StringBuilder();
+                    }
+
                     Value arg = realArgs.get(curArgPos).buildExpIR();
                     irBuilder.buildCall(Function.PUTINT, new ArrayList<>(List.of(arg)));
                     i++;
                     curArgPos++;
                 } else if (c == '\\' && fmtStr.charAt(i + 1) == 'n') {
-                    ConstantInt constChar = irBuilder.buildConstantInt('\n');
-                    irBuilder.buildCall(Function.PUTCH, new ArrayList<>(List.of(constChar)));
+                    curStr.append("\\A0");
                     i++;
                 } else {
-                    ConstantInt constChar = irBuilder.buildConstantInt(c);
-                    irBuilder.buildCall(Function.PUTCH, new ArrayList<>(List.of(constChar)));
+                    curStr.append(c);
                 }
+            }
+            if (!curStr.toString().isEmpty()) {
+                Value sl = irBuilder.buildStringLiteral(curStr.toString());
+                Value slPtr = irBuilder.buildGEPForPutStr(sl, 0);
+                irBuilder.buildCall(Function.PUTSTR, new ArrayList<>(List.of(slPtr)));
             }
         } else if (isAssign()) {
             Value tar = ((LVal) children.get(0)).getLValPointer();
