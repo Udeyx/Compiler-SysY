@@ -1,8 +1,8 @@
 package frontend.node.exp;
 
 import frontend.node.Terminator;
-import midend.ir.Type.IntegerType;
-import midend.ir.Value.Value;
+import midend.ir.type.IntegerType;
+import midend.ir.value.Value;
 import util.NodeType;
 import frontend.node.Node;
 
@@ -40,11 +40,7 @@ public class MulExp extends Node implements ValueHolder {
             return switch (((Terminator) children.get(1)).getVal().getType()) {
                 case MULT -> irBuilder.buildMul(IntegerType.I32, x, y);
                 case DIV -> irBuilder.buildSdiv(IntegerType.I32, x, y);
-                default -> {
-                    Value xDivY = irBuilder.buildSdiv(IntegerType.I32, x, y);
-                    Value xDivYMulY = irBuilder.buildMul(IntegerType.I32, xDivY, y);
-                    yield irBuilder.buildSub(IntegerType.I32, x, xDivYMulY);
-                }
+                default -> irBuilder.buildSrem(IntegerType.I32, x, y);
             };
         }
     }

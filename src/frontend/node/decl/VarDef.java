@@ -5,19 +5,18 @@ import frontend.node.Node;
 import frontend.node.Terminator;
 import frontend.node.exp.ConstExp;
 import frontend.symbol.VarSymbol;
-import midend.ir.Type.ArrayType;
-import midend.ir.Type.IntegerType;
-import midend.ir.Type.PointerType;
-import midend.ir.Type.Type;
-import midend.ir.Value.GlobalVar;
-import midend.ir.Value.Value;
-import midend.ir.Value.instruction.AllocaInst;
-import midend.ir.Value.instruction.GEPInst;
+import midend.ir.type.ArrayType;
+import midend.ir.type.IntegerType;
+import midend.ir.type.PointerType;
+import midend.ir.type.Type;
+import midend.ir.value.GlobalVar;
+import midend.ir.value.Value;
+import midend.ir.value.instruction.AllocaInst;
+import midend.ir.value.instruction.GEPInst;
 import util.ErrorType;
 import util.NodeType;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class VarDef extends Node {
     private VarSymbol varSymbol;

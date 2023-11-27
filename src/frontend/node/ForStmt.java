@@ -2,7 +2,7 @@ package frontend.node;
 
 import frontend.node.exp.Exp;
 import frontend.node.exp.LVal;
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.NodeType;
 
 public class ForStmt extends Node {

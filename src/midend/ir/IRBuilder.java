@@ -1,11 +1,9 @@
 package midend.ir;
 
-import frontend.node.exp.MulExp;
-import frontend.symbol.FuncSymbol;
 import frontend.symbol.SymbolManager;
-import midend.ir.Type.*;
-import midend.ir.Value.*;
-import midend.ir.Value.instruction.*;
+import midend.ir.type.*;
+import midend.ir.value.*;
+import midend.ir.value.instruction.*;
 import util.ICmpType;
 
 import java.util.ArrayList;
@@ -252,6 +250,13 @@ public class IRBuilder {
         SdivInst sdivInst = new SdivInst(type, operand1, operand2, lv);
         curBasicBlock.addInst(sdivInst);
         return sdivInst;
+    }
+
+    public SremInst buildSrem(Type type, Value operand1, Value operand2) {
+        Value lv = buildLV(type);
+        SremInst sremInst = new SremInst(type, operand1, operand2, lv);
+        curBasicBlock.addInst(sremInst);
+        return sremInst;
     }
 
     public ReturnInst buildReturn(Value src) {

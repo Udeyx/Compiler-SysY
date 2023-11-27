@@ -1,8 +1,7 @@
 package frontend.node.exp;
 
 import frontend.node.Terminator;
-import midend.ir.Type.IntegerType;
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.ICmpType;
 import util.NodeType;
 import frontend.node.Node;

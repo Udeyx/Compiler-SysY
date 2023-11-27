@@ -1,6 +1,6 @@
 package midend.ir;
 
-import midend.ir.Value.Function;
+import midend.ir.value.Function;
 
 import java.util.HashMap;
 

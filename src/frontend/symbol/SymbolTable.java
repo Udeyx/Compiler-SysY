@@ -1,7 +1,5 @@
 package frontend.symbol;
 
-import midend.ir.Value.Value;
-
 import java.util.HashMap;
 
 public class SymbolTable {

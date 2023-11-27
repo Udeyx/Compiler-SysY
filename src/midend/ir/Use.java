@@ -1,7 +1,7 @@
 package midend.ir;
 
-import midend.ir.Value.User;
-import midend.ir.Value.Value;
+import midend.ir.value.User;
+import midend.ir.value.Value;
 
 public class Use {
     private final Value value;

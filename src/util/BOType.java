@@ -1,7 +1,7 @@
 package util;
 
 public enum BOType {
-    ADD("add"), SUB("sub"), MUL("mul"), SDIV("sdiv");
+    ADD("add"), SUB("sub"), MUL("mul"), SDIV("sdiv"), SREM("srem");
     private final String val;
 
     BOType(String val) {

@@ -5,20 +5,15 @@ import frontend.node.Node;
 import frontend.node.Terminator;
 import frontend.symbol.ConSymbol;
 import frontend.symbol.Symbol;
-import midend.ir.Type.IntegerType;
-import midend.ir.Type.PointerType;
-import midend.ir.Type.Type;
-import midend.ir.Value.ConstantInt;
-import midend.ir.Value.Value;
-import midend.ir.Value.instruction.GEPInst;
-import midend.ir.Value.instruction.LoadInst;
-import midend.ir.Value.instruction.StoreInst;
+import midend.ir.type.IntegerType;
+import midend.ir.type.PointerType;
+import midend.ir.type.Type;
+import midend.ir.value.ConstantInt;
+import midend.ir.value.Value;
+import midend.ir.value.instruction.GEPInst;
 import util.DataType;
 import util.ErrorType;
 import util.NodeType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LVal extends Node implements ValueHolder {
     public LVal() {

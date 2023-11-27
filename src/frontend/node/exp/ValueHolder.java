@@ -1,6 +1,6 @@
 package frontend.node.exp;
 
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 
 public interface ValueHolder {
     Value buildExpIR();

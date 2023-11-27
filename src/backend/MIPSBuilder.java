@@ -122,6 +122,10 @@ public class MIPSBuilder {
         target.addInstr(new MFLOInstr(rd));
     }
 
+    public void buildMfhi(Register rd) {
+        target.addInstr(new MFHIInstr(rd));
+    }
+
     public void buildJ(String label) {
         if (label.charAt(0) == '@')
             target.addInstr(new JInstr(label.substring(1)));

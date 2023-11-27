@@ -5,9 +5,9 @@ import frontend.node.Node;
 import frontend.node.Terminator;
 import frontend.node.func.FuncRParams;
 import frontend.symbol.FuncSymbol;
-import midend.ir.Type.IntegerType;
-import midend.ir.Value.ConstantInt;
-import midend.ir.Value.Value;
+import midend.ir.type.IntegerType;
+import midend.ir.value.ConstantInt;
+import midend.ir.value.Value;
 import util.*;
 
 import java.util.ArrayList;

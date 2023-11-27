@@ -1,7 +1,7 @@
 package frontend.node.func;
 
 import frontend.node.exp.Exp;
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.DataType;
 import util.NodeType;
 import frontend.node.Node;

@@ -2,7 +2,7 @@ package frontend.node.decl;
 
 import frontend.node.Node;
 import frontend.node.exp.Exp;
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.NodeType;
 
 import java.util.ArrayList;

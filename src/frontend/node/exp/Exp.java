@@ -1,6 +1,6 @@
 package frontend.node.exp;
 
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.NodeType;
 import frontend.node.Node;
 

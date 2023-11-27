@@ -1,6 +1,6 @@
 package frontend.symbol;
 
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.DataType;
 
 import java.util.ArrayList;

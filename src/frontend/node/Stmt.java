@@ -3,18 +3,15 @@ package frontend.node;
 import frontend.Token;
 import frontend.node.exp.EqExp;
 import frontend.node.exp.Exp;
-import frontend.node.exp.LOrExp;
 import frontend.node.exp.LVal;
 import frontend.symbol.FuncSymbol;
-import midend.ir.Type.IntegerType;
-import midend.ir.Value.*;
-import midend.ir.Value.instruction.CallInst;
-import midend.ir.Value.instruction.ICmpInst;
+import midend.ir.value.*;
+import midend.ir.value.instruction.CallInst;
+import midend.ir.value.instruction.ICmpInst;
 import util.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Stmt extends Node {
     public Stmt() {

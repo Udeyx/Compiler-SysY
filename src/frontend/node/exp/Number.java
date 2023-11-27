@@ -2,7 +2,7 @@ package frontend.node.exp;
 
 import frontend.node.Node;
 import frontend.node.Terminator;
-import midend.ir.Value.Value;
+import midend.ir.value.Value;
 import util.NodeType;
 
 public class Number extends Node implements ValueHolder {

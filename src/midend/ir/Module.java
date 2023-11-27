@@ -1,8 +1,8 @@
 package midend.ir;
 
 import backend.MIPSBuilder;
-import midend.ir.Value.Function;
-import midend.ir.Value.GlobalVar;
+import midend.ir.value.Function;
+import midend.ir.value.GlobalVar;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
