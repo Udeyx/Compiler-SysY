@@ -8,34 +8,40 @@ import midend.ir.value.Value;
 import java.util.ArrayList;
 
 public class GEPInst extends Instruction {
-    private final Value pointer;
-    private final ArrayList<Value> indexes;
     private final Value tar;
+    // operands: pointer, index1, index2, ......
 
     public GEPInst(Value pointer, Value tar) {
         super(tar.getName(), tar.getType());
-        this.pointer = pointer;
-        this.indexes = new ArrayList<>();
         this.tar = tar;
+        // maintain use def
+        pointer.addUse(this, 0);
+        this.operands.add(pointer);
     }
 
     public void addIndex(Value index) {
-        indexes.add(index);
+        index.addUse(this, operands.size());
+        this.operands.add(index);
     }
 
     @Override
     public String toString() {
+        Value pointer = operands.get(0);
+        ArrayList<Value> indices = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            indices.add(operands.get(i));
+        }
         StringBuilder sb = new StringBuilder();
-        sb.append(name);
+        sb.append(tar.getName());
         sb.append(" = getelementptr ");
         sb.append(((PointerType) pointer.getType()).getEleType());
         sb.append(", ");
         sb.append(pointer.getType()).append(" ");
         sb.append(pointer.getName()).append(", ");
-        for (int i = 0; i < indexes.size(); i++) {
-            sb.append(indexes.get(i).getType()).append(" ");
-            sb.append(indexes.get(i).getName());
-            if (i < indexes.size() - 1)
+        for (int i = 0; i < indices.size(); i++) {
+            sb.append(indices.get(i).getType()).append(" ");
+            sb.append(indices.get(i).getName());
+            if (i < indices.size() - 1)
                 sb.append(", ");
         }
         return sb.toString();
@@ -56,7 +62,12 @@ public class GEPInst extends Instruction {
         // 所以需要全部处理成向上长的
         // 而且mips里面的字面量是按照字节来的，所以要乘4
         // 总的来看就是base + 4 * offset
-        Value index = indexes.get(indexes.size() - 1);
+        Value pointer = operands.get(0);
+        ArrayList<Value> indices = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            indices.add(operands.get(i));
+        }
+        Value index = indices.get(indices.size() - 1);
         // T0存偏移，T1存基地址，记得偏移要乘4!!!
         if (index instanceof ConstantInt) {
             mipsBuilder.buildLi(Register.T0, Integer.parseInt(index.getName()));

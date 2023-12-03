@@ -1,13 +1,14 @@
 import frontend.*;
 import frontend.node.CompUnit;
 import midend.ir.Module;
+import midend.optimizer.Optimizer;
 import util.IOer;
 
 import java.util.ArrayList;
 
 public class Compiler {
     public static void main(String[] args) {
-        String outputType = "mips";
+        String outputType = "ir";
         String filePath = "testfile.txt";
 
         // read source file to source string
@@ -29,8 +30,11 @@ public class Compiler {
         // generate llvm representation
         compUnit.buildIR();
 
+        // optimize
+        Optimizer.getInstance().optimize();
+
         // generate mips asm
-        Module.getInstance().buildMIPS();
+//        Module.getInstance().buildMIPS();
 
         // output
         switch (outputType) {

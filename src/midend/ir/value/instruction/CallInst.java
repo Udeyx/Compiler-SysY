@@ -3,7 +3,6 @@ package midend.ir.value.instruction;
 import backend.Register;
 import midend.ir.type.FunctionType;
 import midend.ir.type.VoidType;
-import midend.ir.value.Argument;
 import midend.ir.value.Function;
 import midend.ir.value.Value;
 
@@ -11,32 +10,46 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class CallInst extends Instruction {
-    private final Function function;
-    private final ArrayList<Argument> arguments;
     private final Value tar;
+    // operands: function, arg1, arg2, ......
 
-    public CallInst(Function function, ArrayList<Argument> arguments, Value tar) {
+    public CallInst(Function function, ArrayList<Value> arguments, Value tar) {
         super(tar == null ? "" : tar.getName(), ((FunctionType) function.getType()).getReturnType());
-        this.function = function;
-        this.arguments = arguments;
         this.tar = tar;
+        // maintain use def
+        function.addUse(this, 0);
+        for (int i = 0; i < arguments.size(); i++) {
+            arguments.get(i).addUse(this, i + 1);
+        }
+        this.operands.add(function);
+        this.operands.addAll(arguments);
     }
 
     @Override
     public String toString() {
+        Function function = (Function) operands.get(0);
+        ArrayList<Value> arguments = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            arguments.add(operands.get(i));
+        }
         String prefix = "";
         if (tar != null)
             prefix += tar.getName() + " = ";
         prefix += "call " + type + " " + function.getName() + "(";
-        String argsStr = arguments.stream().map(Argument::toString).collect(Collectors.joining(", "));
+        String argsStr = arguments.stream().map(Value::asArg).collect(Collectors.joining(", "));
         return prefix + argsStr + ")";
     }
 
     @Override
     public void buildMIPS() {
         super.buildMIPS();
+        Function function = (Function) operands.get(0);
+        ArrayList<Value> arguments = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            arguments.add(operands.get(i));
+        }
         if (function.equals(Function.PUTINT)) {
-            Argument realArg = arguments.get(arguments.size() - 1);
+            Value realArg = arguments.get(arguments.size() - 1);
             if (Character.isDigit(realArg.getName().charAt(0))) {
                 mipsBuilder.buildLi(Register.A0, Integer.parseInt(realArg.getName()));
             } else {
@@ -58,13 +71,13 @@ public class CallInst extends Instruction {
             }
             return;
         } else if (function.equals(Function.PUTCH)) {
-            Argument realArg = arguments.get(arguments.size() - 1);
+            Value realArg = arguments.get(arguments.size() - 1);
             mipsBuilder.buildLi(Register.A0, Integer.parseInt(realArg.getName()));
             mipsBuilder.buildLi(Register.V0, 11);
             mipsBuilder.buildSyscall();
             return;
         } else if (function.equals(Function.PUTSTR)) {
-            Argument realArg = arguments.get(arguments.size() - 1);
+            Value realArg = arguments.get(arguments.size() - 1);
             int srcPos = mipsBuilder.getSymbolPos(realArg.getName());
             mipsBuilder.buildLw(Register.A0, srcPos, Register.SP);
             mipsBuilder.buildLi(Register.V0, 4);
@@ -79,7 +92,7 @@ public class CallInst extends Instruction {
         mipsBuilder.buildSw(Register.RA, pushPos, Register.SP);
         // 再压参数，参数可能是int, 全局变量或局部变量
         for (int i = arguments.size() - 1; i >= 0; i--) {
-            Argument curArg = arguments.get(i);
+            Value curArg = arguments.get(i);
             pushPos -= 4;
             if (Character.isDigit(curArg.getName().charAt(0))) {
                 mipsBuilder.buildLi(Register.T0, Integer.parseInt(curArg.getName()));

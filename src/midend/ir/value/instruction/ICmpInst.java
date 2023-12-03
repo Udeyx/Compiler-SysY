@@ -7,22 +7,27 @@ import midend.ir.value.Value;
 import util.ICmpType;
 import util.OpCode;
 
+import java.util.List;
+
 public class ICmpInst extends Instruction {
-    private final Value operand1;
-    private final Value operand2;
     private final ICmpType iCmpType;
     private final Value tar;
+    // operands: operand1, operand2
 
     public ICmpInst(ICmpType iCmpType, Value operand1, Value operand2, Value tar) {
         super(tar.getName(), IntegerType.I1);
-        this.operand1 = operand1;
-        this.operand2 = operand2;
         this.iCmpType = iCmpType;
         this.tar = tar;
+        // maintain def use
+        operand1.addUse(this, 0);
+        operand2.addUse(this, 1);
+        this.operands.addAll(List.of(operand1, operand2));
     }
 
     @Override
     public String toString() {
+        Value operand1 = operands.get(0);
+        Value operand2 = operands.get(1);
         return tar.getName() + " = icmp " + iCmpType + " " + operand1.getType() + " "
                 + operand1.getName() + ", " + operand2.getName();
     }
@@ -30,6 +35,8 @@ public class ICmpInst extends Instruction {
     @Override
     public void buildMIPS() {
         super.buildMIPS();
+        Value operand1 = operands.get(0);
+        Value operand2 = operands.get(1);
         if (operand1 instanceof ConstantInt) {
             mipsBuilder.buildLi(Register.T1, Integer.parseInt(operand1.getName()));
         } else {

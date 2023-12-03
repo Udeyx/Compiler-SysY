@@ -5,7 +5,6 @@ import frontend.node.exp.EqExp;
 import frontend.node.exp.Exp;
 import frontend.node.exp.LVal;
 import frontend.symbol.FuncSymbol;
-import midend.ir.type.ArrayType;
 import midend.ir.value.*;
 import midend.ir.value.instruction.CallInst;
 import midend.ir.value.instruction.ICmpInst;
@@ -13,7 +12,6 @@ import util.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Stmt extends Node {
     public Stmt() {
@@ -114,7 +112,7 @@ public class Stmt extends Node {
                     i++;
                     curArgPos++;
                 } else if (c == '\\' && fmtStr.charAt(i + 1) == 'n') {
-                    curStr.append("\\A0");
+                    curStr.append("\n");
                     i++;
                 } else {
                     curStr.append(c);
@@ -157,10 +155,10 @@ public class Stmt extends Node {
         // build the first forStmt
         if (children.get(2) instanceof ForStmt)
             children.get(2).buildIR();
-        BasicBlock loopBody = irBuilder.buildBasicBlock();
-        BasicBlock finalBlock = irBuilder.buildBasicBlock();
-        BasicBlock condBlock = irBuilder.buildBasicBlock();
-        BasicBlock increaseBlock = irBuilder.buildBasicBlock();
+        BasicBlock loopBody = irBuilder.buildBasicBlockWithCurFunc();
+        BasicBlock finalBlock = irBuilder.buildBasicBlockWithCurFunc();
+        BasicBlock condBlock = irBuilder.buildBasicBlockWithCurFunc();
+        BasicBlock increaseBlock = irBuilder.buildBasicBlockWithCurFunc();
         irBuilder.buildNoCondBranch(condBlock); // jump from curBlock to condBlock
 
         // set the curIncreaseBlock and curFinalBlock
@@ -209,8 +207,8 @@ public class Stmt extends Node {
 
     private void buildIfIR() {
         ArrayList<ArrayList<EqExp>> flatCond = ((Cond) children.get(2)).toFlat();
-        BasicBlock trueBlock = irBuilder.buildBasicBlock();
-        BasicBlock finalBlock = irBuilder.buildBasicBlock();
+        BasicBlock trueBlock = irBuilder.buildBasicBlockWithCurFunc();
+        BasicBlock finalBlock = irBuilder.buildBasicBlockWithCurFunc();
 
         if (children.size() < 7) { // no else
             // start to build cond
@@ -223,7 +221,7 @@ public class Stmt extends Node {
             irBuilder.buildNoCondBranch(finalBlock);
 
         } else {
-            BasicBlock falseBlock = irBuilder.buildBasicBlock();
+            BasicBlock falseBlock = irBuilder.buildBasicBlockWithCurFunc();
 
             // start to build cond
             buildLOrIR(flatCond, trueBlock, falseBlock);
@@ -249,7 +247,7 @@ public class Stmt extends Node {
         // alloc a basicBlock for each LAndExp
         ArrayList<BasicBlock> lAndBlocks = new ArrayList<>();
         for (int i = 0; i < flatCond.size(); i++) {
-            lAndBlocks.add(irBuilder.buildBasicBlock());
+            lAndBlocks.add(irBuilder.buildBasicBlockWithCurFunc());
         }
 
         // add br to the previous block
@@ -270,7 +268,7 @@ public class Stmt extends Node {
         ArrayList<BasicBlock> eqBlocks = new ArrayList<>();
         eqBlocks.add(irBuilder.getCurBasicBlock());
         for (int i = 0; i < flatCond.size() - 1; i++) {
-            eqBlocks.add(irBuilder.buildBasicBlock());
+            eqBlocks.add(irBuilder.buildBasicBlockWithCurFunc());
         }
         for (int i = 0; i < flatCond.size() - 1; i++) { // won't reach the last EqExp
             irBuilder.setCurBasicBlock(eqBlocks.get(i));

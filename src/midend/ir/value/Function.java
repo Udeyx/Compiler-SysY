@@ -35,6 +35,10 @@ public class Function extends User {
         basicBlocks.add(basicBlock);
     }
 
+    public ArrayList<BasicBlock> getBasicBlocks() {
+        return basicBlocks;
+    }
+
     @Override
     public String toString() {
         if (this.equals(Function.PUTCH)) {

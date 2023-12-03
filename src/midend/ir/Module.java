@@ -44,6 +44,10 @@ public class Module {
         functions.add(function);
     }
 
+    public ArrayList<Function> getFunctions() {
+        return functions;
+    }
+
     @Override
     public String toString() {
         return stringLiterals.stream().map(StringLiteral::toString)

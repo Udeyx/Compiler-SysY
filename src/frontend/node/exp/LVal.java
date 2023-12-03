@@ -114,7 +114,7 @@ public class LVal extends Node implements ValueHolder {
                     Value index2 = ((Exp) children.get(5)).buildExpIR();
                     ConstantInt secondDimSize = irBuilder.buildConstantInt(symbol.getSecondDimSize());
                     Value baseAddr = irBuilder.buildMul(IntegerType.I32, index1, secondDimSize);
-                    Value index = irBuilder.buildAdd(IntegerType.I32, index2, baseAddr);
+                    Value index = irBuilder.buildAddWithLV(IntegerType.I32, index2, baseAddr);
                     GEPInst gepInst;
                     if (symbolLLVMType.equals(new PointerType(IntegerType.I32)))
                         gepInst = irBuilder.buildGEP(symbol.getLlvmObj(), index);
@@ -144,7 +144,7 @@ public class LVal extends Node implements ValueHolder {
                 Value index2 = ((Exp) children.get(5)).buildExpIR();
                 ConstantInt secondDimSize = irBuilder.buildConstantInt(symbol.getSecondDimSize());
                 Value baseAddr = irBuilder.buildMul(IntegerType.I32, index1, secondDimSize);
-                Value index = irBuilder.buildAdd(IntegerType.I32, index2, baseAddr);
+                Value index = irBuilder.buildAddWithLV(IntegerType.I32, index2, baseAddr);
                 if (symbolLLVMType.equals(new PointerType(IntegerType.I32)))
                     return irBuilder.buildGEP(symbol.getLlvmObj(), index);
                 else return irBuilder.buildGEPWithZeroPrep(symbol.getLlvmObj(), index);

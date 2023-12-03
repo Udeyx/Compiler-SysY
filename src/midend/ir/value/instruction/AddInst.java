@@ -20,6 +20,8 @@ public class AddInst extends BinaryOperator {
          由于operand只能是i32类型，因此不可能是指针，故不可能是全局变量，
          所以用不到la
          */
+        Value operand1 = operands.get(0);
+        Value operand2 = operands.get(1);
         if (operand1 instanceof ConstantInt) {
             mipsBuilder.buildLi(Register.T1, Integer.parseInt(operand1.getName()));
         } else {

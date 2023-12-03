@@ -28,6 +28,7 @@ public class IRBuilder {
         this.curFinalBlock = null;
     }
 
+    // getter and setters
     public static IRBuilder getInstance() {
         return IR_BUILDER;
     }
@@ -68,6 +69,7 @@ public class IRBuilder {
         this.curIncreaseBlock = curIncreaseBlock;
     }
 
+    // build non-instruction value
     public GlobalVar buildGlobalVar(PointerType type, boolean isConst, ArrayList<Integer> initVal) {
         GlobalVar globalVar = new GlobalVar(nameSpace.allocGvName(), type, isConst, initVal);
         module.addGlobalVar(globalVar);
@@ -85,7 +87,7 @@ public class IRBuilder {
     public Function buildFunction(String name, Type type) {
         Function function = new Function(nameSpace.allocFuncName(name), type);
         nameSpace.addFunc(function);
-        BasicBlock firstBlock = buildBasicBlock();
+        BasicBlock firstBlock = buildBasicBlock(function);
         curBasicBlock = firstBlock;
         function.addBasicBlock(firstBlock);
         module.addFunction(function);
@@ -98,8 +100,12 @@ public class IRBuilder {
         return param;
     }
 
-    public BasicBlock buildBasicBlock() {
-        return new BasicBlock(nameSpace.allocBBName());
+    public BasicBlock buildBasicBlock(Function function) {
+        return new BasicBlock(nameSpace.allocBBName(), function);
+    }
+
+    public BasicBlock buildBasicBlockWithCurFunc() {
+        return buildBasicBlock(curFunction);
     }
 
     public ConstantInt buildConstantInt(int val) {
@@ -114,6 +120,7 @@ public class IRBuilder {
         return new Value(nameSpace.allocLvName(curFunction), type);
     }
 
+    // build instructions
     public AllocaInst buildAlloca(PointerType type) {
         AllocaInst allocaInst = new AllocaInst(nameSpace.allocLvName(curFunction), type);
         curBasicBlock.addInst(allocaInst);
@@ -189,9 +196,7 @@ public class IRBuilder {
         return gepInst;
     }
 
-    public CallInst buildCall(String funcName, ArrayList<Value> values) {
-        ArrayList<Argument> arguments = new ArrayList<>();
-        values.stream().map(Argument::new).forEach(arguments::add);
+    public CallInst buildCall(String funcName, ArrayList<Value> arguments) {
         Function function = (Function) manager.getSymbol(funcName).getLlvmObj();
         CallInst callInst;
         if (((FunctionType) function.getType()).getReturnType().equals(VoidType.VOID)) {
@@ -204,9 +209,7 @@ public class IRBuilder {
         return callInst;
     }
 
-    public CallInst buildCall(Function function, ArrayList<Value> values) {
-        ArrayList<Argument> arguments = new ArrayList<>();
-        values.stream().map(Argument::new).forEach(arguments::add);
+    public CallInst buildCall(Function function, ArrayList<Value> arguments) {
         CallInst callInst;
         if (((FunctionType) function.getType()).getReturnType().equals(VoidType.VOID)) {
             callInst = new CallInst(function, arguments, null);
@@ -240,11 +243,9 @@ public class IRBuilder {
         return addInst;
     }
 
-    public AddInst buildAdd(Type type, Value operand1, Value operand2) {
+    public AddInst buildAddWithLV(Type type, Value operand1, Value operand2) {
         Value lv = buildLV(type);
-        AddInst addInst = new AddInst(type, operand1, operand2, lv);
-        curBasicBlock.addInst(addInst);
-        return addInst;
+        return buildAdd(type, operand1, operand2, lv);
     }
 
     public SubInst buildSub(Type type, Value operand1, Value operand2, Value tar) {
@@ -293,9 +294,26 @@ public class IRBuilder {
         return returnInst;
     }
 
+    public PhiInst buildPhi(Type type, Value option1, BasicBlock src1, Value option2,
+                            BasicBlock src2, Value tar) {
+        PhiInst phiInst = new PhiInst(type, option1, src1, option2, src2, tar, nameSpace.allocLvName(curFunction));
+        curBasicBlock.addInst(0, phiInst);
+        return phiInst;
+    }
+
+
     public BranchInst buildBranch(Value cond, BasicBlock trueBlock, BasicBlock falseBlock) {
         BranchInst branchInst = new BranchInst(cond, trueBlock, falseBlock);
-        curBasicBlock.addInst(branchInst);
+        boolean added = curBasicBlock.addInst(branchInst);
+
+        if (added) {
+            curBasicBlock.addNextBb(trueBlock);
+            trueBlock.addPrevBb(curBasicBlock);
+            if (!trueBlock.equals(falseBlock)) {
+                curBasicBlock.addNextBb(falseBlock);
+                falseBlock.addPrevBb(curBasicBlock);
+            }
+        }
         return branchInst;
     }
 

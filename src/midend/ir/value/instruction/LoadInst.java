@@ -7,18 +7,25 @@ import midend.ir.value.Value;
 
 public class LoadInst extends Instruction {
 
-    private final Value src;
     private final Value tar;
+    // operands: src
 
     public LoadInst(Value src, Value tar) {
         super(tar.getName(), ((PointerType) src.getType()).getEleType());
-        this.src = src;
         this.tar = tar;
+        // maintain use def
+        src.addUse(this, 0);
+        this.operands.add(src);
+    }
+
+    public Value getSrc() {
+        return operands.get(0);
     }
 
     @Override
     public String toString() {
-        return tar.getName() + " = load " + type + ", " + src.getType() + " " + src.getName();
+        return tar.getName() + " = load " + type + ", " + operands.get(0).getType()
+                + " " + operands.get(0).getName();
     }
 
     /**
@@ -29,6 +36,7 @@ public class LoadInst extends Instruction {
     public void buildMIPS() {
         super.buildMIPS();
         // load是从一个i32*里面读东西，因此要考虑src是全局变量
+        Value src = operands.get(0);
         if (src instanceof GlobalVar) {
             mipsBuilder.buildLa(Register.T1, src.getName());
             mipsBuilder.buildLw(Register.T0, 0, Register.T1);

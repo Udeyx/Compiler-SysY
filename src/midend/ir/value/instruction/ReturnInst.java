@@ -6,16 +6,16 @@ import midend.ir.value.ConstantInt;
 import midend.ir.value.Value;
 
 public class ReturnInst extends Instruction {
-    private final Value src;
 
+    // operands: src
     public ReturnInst(Value src) {
-        super(src.getName(), src.getType());
-        this.src = src;
+        super("", src.getType());
+        src.addUse(this, 0);
+        this.operands.add(src);
     }
 
     public ReturnInst() {
         super("", VoidType.VOID);
-        this.src = null;
     }
 
     @Override
@@ -23,7 +23,7 @@ public class ReturnInst extends Instruction {
         if (type.equals(VoidType.VOID)) {
             return "ret void\n";
         } else {
-            return "ret " + type + " " + name;
+            return "ret " + type + " " + operands.get(0).getName();
         }
     }
 
@@ -31,6 +31,7 @@ public class ReturnInst extends Instruction {
     public void buildMIPS() {
         super.buildMIPS();
         if (!type.equals(VoidType.VOID)) {
+            Value src = operands.get(0);
             if (src instanceof ConstantInt) {
                 mipsBuilder.buildLi(Register.V0, Integer.parseInt(src.getName()));
             } else {

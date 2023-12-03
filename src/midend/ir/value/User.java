@@ -11,4 +11,8 @@ public class User extends Value {
         super(name, type);
         this.operands = new ArrayList<>();
     }
+
+    public void replaceOperand(int pos, Value newOperand) {
+        operands.set(pos, newOperand);
+    }
 }

@@ -39,7 +39,7 @@ public class AddExp extends Node implements ValueHolder {
             Value x = ((AddExp) children.get(0)).buildExpIR();
             Value y = ((MulExp) children.get(2)).buildExpIR();
             if (isAdd())
-                return irBuilder.buildAdd(IntegerType.I32, x, y);
+                return irBuilder.buildAddWithLV(IntegerType.I32, x, y);
             else  // is sub
                 return irBuilder.buildSub(IntegerType.I32, x, y);
         }

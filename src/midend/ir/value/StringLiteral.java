@@ -19,7 +19,7 @@ public class StringLiteral extends Value {
 
     @Override
     public void buildMIPS() {
-        super.buildMIPS();
-        mipsBuilder.buildAsciiz(name, content.replace("\\A0", "\\n"));
+//        super.buildMIPS();
+        mipsBuilder.buildAsciiz(name, content.replace("\n", "\\n"));
     }
 }
