@@ -37,12 +37,12 @@ public class BranchInst extends Instruction {
         Value trueBlock = operands.get(1);
         Value falseBlock = operands.get(2);
         if (cond instanceof ConstantInt constantInt) {
-            mipsBuilder.buildLi(Register.T0, constantInt);
+            mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
             int condPos = mipsBuilder.getSymbolPos(cond.getName());
-            mipsBuilder.buildLw(Register.T0, condPos, Register.SP);
+            mipsBuilder.buildLw(Register.K0, condPos, Register.SP);
         }
-        mipsBuilder.buildBne(Register.T0, Register.ZERO, trueBlock.getName());
+        mipsBuilder.buildBne(Register.K0, Register.ZERO, trueBlock.getName());
         mipsBuilder.buildJ(falseBlock.getName());
     }
 

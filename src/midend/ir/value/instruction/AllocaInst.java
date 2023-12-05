@@ -30,9 +30,9 @@ public class AllocaInst extends Instruction {
         } else
             size = 4;
         int startPos = mipsBuilder.allocAnonymousStackSpace(size);
-        mipsBuilder.buildLi(Register.T0, startPos);
-        mipsBuilder.buildAddu(Register.T0, Register.T0, Register.SP);
+        mipsBuilder.buildLi(Register.K0, startPos);
+        mipsBuilder.buildAddu(Register.K0, Register.K0, Register.SP);
         int pointerPos = mipsBuilder.allocStackSpace(name);
-        mipsBuilder.buildSw(Register.T0, pointerPos, Register.SP);
+        mipsBuilder.buildSw(Register.K0, pointerPos, Register.SP);
     }
 }

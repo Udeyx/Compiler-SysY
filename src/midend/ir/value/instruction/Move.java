@@ -24,16 +24,16 @@ public class Move extends Instruction {
     public void buildMIPS() {
         super.buildMIPS();
         if (src instanceof ConstantInt constantInt) {
-            mipsBuilder.buildLi(Register.T0, constantInt);
+            mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
             int srcPos = mipsBuilder.getSymbolPos(src.getName());
-            mipsBuilder.buildLw(Register.T0, srcPos, Register.SP);
+            mipsBuilder.buildLw(Register.K0, srcPos, Register.SP);
         }
         int tarPos;
         if (mipsBuilder.hasSymbol(tar.getName()))
             tarPos = mipsBuilder.getSymbolPos(tar.getName());
         else
             tarPos = mipsBuilder.allocStackSpace(tar.getName());
-        mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
+        mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
     }
 }

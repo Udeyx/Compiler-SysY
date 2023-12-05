@@ -38,17 +38,17 @@ public class ICmpInst extends Instruction {
         Value operand1 = operands.get(0);
         Value operand2 = operands.get(1);
         if (operand1 instanceof ConstantInt constantInt) {
-            mipsBuilder.buildLi(Register.T1, constantInt);
+            mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
             int op1Pos = mipsBuilder.getSymbolPos(operand1.getName());
-            mipsBuilder.buildLw(Register.T1, op1Pos, Register.SP);
+            mipsBuilder.buildLw(Register.K0, op1Pos, Register.SP);
         }
 
         if (operand2 instanceof ConstantInt constantInt) {
-            mipsBuilder.buildLi(Register.T2, constantInt);
+            mipsBuilder.buildLi(Register.K1, constantInt);
         } else {
             int op2Pos = mipsBuilder.getSymbolPos(operand2.getName());
-            mipsBuilder.buildLw(Register.T2, op2Pos, Register.SP);
+            mipsBuilder.buildLw(Register.K1, op2Pos, Register.SP);
         }
 
         OpCode opCode = switch (iCmpType) {
@@ -60,8 +60,8 @@ public class ICmpInst extends Instruction {
             default -> OpCode.SLE;
         };
 
-        mipsBuilder.buildCmp(Register.T0, Register.T1, Register.T2, opCode);
+        mipsBuilder.buildCmp(Register.K0, Register.K0, Register.K1, opCode);
         int tarPos = mipsBuilder.allocStackSpace(tar.getName());
-        mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
+        mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
     }
 }

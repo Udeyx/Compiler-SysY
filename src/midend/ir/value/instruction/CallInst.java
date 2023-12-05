@@ -64,8 +64,8 @@ public class CallInst extends Instruction {
             mipsBuilder.buildLi(Register.V0, 5);
             mipsBuilder.buildSyscall();
             if (tar.getName().charAt(0) == '@') {
-                mipsBuilder.buildLa(Register.T1, tar.getName());
-                mipsBuilder.buildSw(Register.V0, 0, Register.T1);
+                mipsBuilder.buildLa(Register.K1, tar.getName());
+                mipsBuilder.buildSw(Register.V0, 0, Register.K1);
             } else {
                 int tarPos = mipsBuilder.allocStackSpace(tar.getName());
                 mipsBuilder.buildSw(Register.V0, tarPos, Register.SP);
@@ -96,20 +96,20 @@ public class CallInst extends Instruction {
             Value curArg = arguments.get(i);
             pushPos -= 4;
             if (curArg instanceof ConstantInt constantInt) {
-                mipsBuilder.buildLi(Register.T0, constantInt);
-                mipsBuilder.buildSw(Register.T0, pushPos, Register.SP);
+                mipsBuilder.buildLi(Register.K0, constantInt);
+                mipsBuilder.buildSw(Register.K0, pushPos, Register.SP);
             } else if (curArg.getName().charAt(0) == '@') {
-                mipsBuilder.buildLa(Register.T0, curArg.getName());
-                mipsBuilder.buildSw(Register.T0, pushPos, Register.SP);
+                mipsBuilder.buildLa(Register.K0, curArg.getName());
+                mipsBuilder.buildSw(Register.K0, pushPos, Register.SP);
             } else {
                 int lvPos = mipsBuilder.getSymbolPos(curArg.getName());
-                mipsBuilder.buildLw(Register.T0, lvPos, Register.SP);
-                mipsBuilder.buildSw(Register.T0, pushPos, Register.SP);
+                mipsBuilder.buildLw(Register.K0, lvPos, Register.SP);
+                mipsBuilder.buildSw(Register.K0, pushPos, Register.SP);
             }
         }
         // 跳到第一个参数的位置，使得在被调用函数中可以通过0($sp)来取得第一个参数的值
-        mipsBuilder.buildLi(Register.T0, mipsBuilder.getStackTop() - 8);
-        mipsBuilder.buildAddu(Register.SP, Register.SP, Register.T0);
+        mipsBuilder.buildLi(Register.K0, mipsBuilder.getStackTop() - 8);
+        mipsBuilder.buildAddu(Register.SP, Register.SP, Register.K0);
 
         // 调用目标函数
         mipsBuilder.buildJal(function.getName());

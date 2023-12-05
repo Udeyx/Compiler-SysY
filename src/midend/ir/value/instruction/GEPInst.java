@@ -70,24 +70,24 @@ public class GEPInst extends Instruction {
         Value index = indices.get(indices.size() - 1);
         // T0存偏移，T1存基地址，记得偏移要乘4!!!
         if (index instanceof ConstantInt constantInt) {
-            mipsBuilder.buildLi(Register.T0, constantInt);
+            mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
             int offPos = mipsBuilder.getSymbolPos(index.getName());
-            mipsBuilder.buildLw(Register.T0, offPos, Register.SP);
+            mipsBuilder.buildLw(Register.K0, offPos, Register.SP);
         }
-        mipsBuilder.buildSll(Register.T0, Register.T0, 2);
+        mipsBuilder.buildSll(Register.K0, Register.K0, 2);
 
         if (pointer.getName().charAt(0) == '@') {
-            mipsBuilder.buildLa(Register.T1, pointer.getName());
+            mipsBuilder.buildLa(Register.K1, pointer.getName());
         } else {
             int srcPos = mipsBuilder.getSymbolPos(pointer.getName());
-            mipsBuilder.buildLw(Register.T1, srcPos, Register.SP);
+            mipsBuilder.buildLw(Register.K1, srcPos, Register.SP);
         }
-        mipsBuilder.buildAddu(Register.T0, Register.T1, Register.T0);
+        mipsBuilder.buildAddu(Register.K0, Register.K1, Register.K0);
 
         // 局部变量等于基地址减去偏移量！！！全局变量不知道
 
         int tarPos = mipsBuilder.allocStackSpace(tar.getName());
-        mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
+        mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
     }
 }

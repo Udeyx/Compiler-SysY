@@ -38,14 +38,14 @@ public class LoadInst extends Instruction {
         // load是从一个i32*里面读东西，因此要考虑src是全局变量
         Value src = operands.get(0);
         if (src instanceof GlobalVar) {
-            mipsBuilder.buildLa(Register.T1, src.getName());
-            mipsBuilder.buildLw(Register.T0, 0, Register.T1);
+            mipsBuilder.buildLa(Register.K1, src.getName());
+            mipsBuilder.buildLw(Register.K0, 0, Register.K1);
         } else {
             int srcPos = mipsBuilder.getSymbolPos(src.getName());
-            mipsBuilder.buildLw(Register.T1, srcPos, Register.SP);
-            mipsBuilder.buildLw(Register.T0, 0, Register.T1);
+            mipsBuilder.buildLw(Register.K1, srcPos, Register.SP);
+            mipsBuilder.buildLw(Register.K0, 0, Register.K1);
         }
         int tarPos = mipsBuilder.allocStackSpace(tar.getName());
-        mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
+        mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
     }
 }

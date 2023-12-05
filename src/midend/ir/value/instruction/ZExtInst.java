@@ -26,7 +26,7 @@ public class ZExtInst extends Instruction {
         Value src = operands.get(0);
         int srcPos = mipsBuilder.getSymbolPos(src.getName());
         int tarPos = mipsBuilder.allocStackSpace(tar.getName());
-        mipsBuilder.buildLw(Register.T0, srcPos, Register.SP);
-        mipsBuilder.buildSw(Register.T0, tarPos, Register.SP);
+        mipsBuilder.buildLw(Register.K0, srcPos, Register.SP);
+        mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
     }
 }
