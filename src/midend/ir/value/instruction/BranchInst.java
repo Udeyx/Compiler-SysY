@@ -36,13 +36,24 @@ public class BranchInst extends Instruction {
         Value cond = operands.get(0);
         Value trueBlock = operands.get(1);
         Value falseBlock = operands.get(2);
-        if (cond instanceof ConstantInt) {
-            mipsBuilder.buildLi(Register.T0, Integer.parseInt(cond.getName()));
+        if (cond instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.T0, constantInt);
         } else {
             int condPos = mipsBuilder.getSymbolPos(cond.getName());
             mipsBuilder.buildLw(Register.T0, condPos, Register.SP);
         }
         mipsBuilder.buildBne(Register.T0, Register.ZERO, trueBlock.getName());
         mipsBuilder.buildJ(falseBlock.getName());
+    }
+
+    public void changeDes(BasicBlock preBlock, BasicBlock newBlock) {
+        for (int i = 0; i < operands.size(); i++) {
+            Value operand = operands.get(i);
+            if (operand.equals(preBlock)) {
+                operand.removeUse(this, i);
+                operands.set(i, newBlock);
+                newBlock.addUse(this, i);
+            }
+        }
     }
 }

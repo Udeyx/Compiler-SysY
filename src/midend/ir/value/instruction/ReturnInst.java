@@ -32,8 +32,8 @@ public class ReturnInst extends Instruction {
         super.buildMIPS();
         if (!type.equals(VoidType.VOID)) {
             Value src = operands.get(0);
-            if (src instanceof ConstantInt) {
-                mipsBuilder.buildLi(Register.V0, Integer.parseInt(src.getName()));
+            if (src instanceof ConstantInt constantInt) {
+                mipsBuilder.buildLi(Register.V0, constantInt);
             } else {
                 int srcPos = mipsBuilder.getSymbolPos(src.getName());
                 mipsBuilder.buildLw(Register.V0, srcPos, Register.SP);

@@ -73,6 +73,28 @@ public class IOer {
         }
     }
 
+    public static void printPhiIR() {
+        try {
+            PrintStream ps = new PrintStream("llvm_ir_phi.txt");
+            System.setOut(ps);
+            System.out.println(Module.getInstance());
+            ps.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("exception in printIR");
+        }
+    }
+
+    public static void printMoveIR() {
+        try {
+            PrintStream ps = new PrintStream("llvm_ir_move.txt");
+            System.setOut(ps);
+            System.out.println(Module.getInstance());
+            ps.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("exception in printIR");
+        }
+    }
+
     public static void printMIPS() {
         try {
             PrintStream ps = new PrintStream("mips.txt");

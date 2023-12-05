@@ -12,6 +12,7 @@ import backend.instr.j.JRInstr;
 import backend.instr.r.*;
 import backend.instr.i.LWInstr;
 import backend.instr.i.SWInstr;
+import midend.ir.value.ConstantInt;
 import util.OpCode;
 
 import java.util.ArrayList;
@@ -40,6 +41,10 @@ public class MIPSBuilder {
 
     public int getSymbolPos(String name) {
         return symbolTable.get(name);
+    }
+
+    public boolean hasSymbol(String name) {
+        return symbolTable.containsKey(name);
     }
 
     public int allocStackSpace(String name) {
@@ -85,6 +90,10 @@ public class MIPSBuilder {
     }
 
     public void buildLi(Register tar, int val) {
+        target.addInstr(new LIInstr(tar, val));
+    }
+
+    public void buildLi(Register tar, ConstantInt val) {
         target.addInstr(new LIInstr(tar, val));
     }
 

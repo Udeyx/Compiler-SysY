@@ -69,8 +69,8 @@ public class GEPInst extends Instruction {
         }
         Value index = indices.get(indices.size() - 1);
         // T0存偏移，T1存基地址，记得偏移要乘4!!!
-        if (index instanceof ConstantInt) {
-            mipsBuilder.buildLi(Register.T0, Integer.parseInt(index.getName()));
+        if (index instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.T0, constantInt);
         } else {
             int offPos = mipsBuilder.getSymbolPos(index.getName());
             mipsBuilder.buildLw(Register.T0, offPos, Register.SP);

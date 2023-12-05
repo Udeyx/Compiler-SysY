@@ -59,7 +59,8 @@ public class Mem2Reg extends Pass {
                     else
                         nowValue = reachDefs.get(loadInst.getSrc()).peek();
                     for (Use use : loadInst.getUses()) {
-                        use.getUser().replaceOperand(use.getPos(), nowValue);
+                        if (use != null)
+                            use.getUser().replaceOperand(use.getPos(), nowValue);
                     }
                     it.remove();
                 }

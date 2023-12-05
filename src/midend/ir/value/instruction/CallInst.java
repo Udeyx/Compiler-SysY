@@ -3,6 +3,7 @@ package midend.ir.value.instruction;
 import backend.Register;
 import midend.ir.type.FunctionType;
 import midend.ir.type.VoidType;
+import midend.ir.value.ConstantInt;
 import midend.ir.value.Function;
 import midend.ir.value.Value;
 
@@ -50,8 +51,8 @@ public class CallInst extends Instruction {
         }
         if (function.equals(Function.PUTINT)) {
             Value realArg = arguments.get(arguments.size() - 1);
-            if (Character.isDigit(realArg.getName().charAt(0))) {
-                mipsBuilder.buildLi(Register.A0, Integer.parseInt(realArg.getName()));
+            if (realArg instanceof ConstantInt constantInt) {
+                mipsBuilder.buildLi(Register.A0, constantInt);
             } else {
                 int srcPos = mipsBuilder.getSymbolPos(realArg.getName());
                 mipsBuilder.buildLw(Register.A0, srcPos, Register.SP);
@@ -72,7 +73,7 @@ public class CallInst extends Instruction {
             return;
         } else if (function.equals(Function.PUTCH)) {
             Value realArg = arguments.get(arguments.size() - 1);
-            mipsBuilder.buildLi(Register.A0, Integer.parseInt(realArg.getName()));
+            mipsBuilder.buildLi(Register.A0, (ConstantInt) realArg);
             mipsBuilder.buildLi(Register.V0, 11);
             mipsBuilder.buildSyscall();
             return;
@@ -94,8 +95,8 @@ public class CallInst extends Instruction {
         for (int i = arguments.size() - 1; i >= 0; i--) {
             Value curArg = arguments.get(i);
             pushPos -= 4;
-            if (Character.isDigit(curArg.getName().charAt(0))) {
-                mipsBuilder.buildLi(Register.T0, Integer.parseInt(curArg.getName()));
+            if (curArg instanceof ConstantInt constantInt) {
+                mipsBuilder.buildLi(Register.T0, constantInt);
                 mipsBuilder.buildSw(Register.T0, pushPos, Register.SP);
             } else if (curArg.getName().charAt(0) == '@') {
                 mipsBuilder.buildLa(Register.T0, curArg.getName());

@@ -5,6 +5,7 @@ import midend.ir.type.Type;
 import midend.ir.Use;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Value {
     protected final String name;
@@ -21,6 +22,16 @@ public class Value {
 
     public void addUse(User user, int pos) {
         uses.add(new Use(this, user, pos));
+    }
+
+    public void removeUse(User user, int pos) { // 这个只是把对应位置置为null，因此遍历的时候要小心
+        for (int i = 0; i < uses.size(); i++) {
+            Use use = uses.get(i);
+            if (use != null && use.getUser().equals(user) && i == pos) {
+                uses.set(i, null);
+                break;
+            }
+        }
     }
 
     public ArrayList<Use> getUses() {
@@ -46,5 +57,13 @@ public class Value {
 
     public String asArg() {
         return type + " " + name;
+    }
+
+    public boolean isUseful() {
+        for (Use use : uses) {
+            if (use != null)
+                return true;
+        }
+        return false;
     }
 }

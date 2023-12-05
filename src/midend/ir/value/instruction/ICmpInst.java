@@ -37,15 +37,15 @@ public class ICmpInst extends Instruction {
         super.buildMIPS();
         Value operand1 = operands.get(0);
         Value operand2 = operands.get(1);
-        if (operand1 instanceof ConstantInt) {
-            mipsBuilder.buildLi(Register.T1, Integer.parseInt(operand1.getName()));
+        if (operand1 instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.T1, constantInt);
         } else {
             int op1Pos = mipsBuilder.getSymbolPos(operand1.getName());
             mipsBuilder.buildLw(Register.T1, op1Pos, Register.SP);
         }
 
-        if (operand2 instanceof ConstantInt) {
-            mipsBuilder.buildLi(Register.T2, Integer.parseInt(operand2.getName()));
+        if (operand2 instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.T2, constantInt);
         } else {
             int op2Pos = mipsBuilder.getSymbolPos(operand2.getName());
             mipsBuilder.buildLw(Register.T2, op2Pos, Register.SP);

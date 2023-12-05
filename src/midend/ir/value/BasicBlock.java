@@ -4,6 +4,7 @@ import midend.ir.type.LabelType;
 import midend.ir.value.instruction.BranchInst;
 import midend.ir.value.instruction.Instruction;
 import midend.ir.value.instruction.ReturnInst;
+import midend.optimizer.ParallelCopy;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ public class BasicBlock extends Value {
     private final HashSet<BasicBlock> domFrontier;
     private final Function function;
     private boolean hasRetOrBr;
+    private ArrayList<ParallelCopy> pcs;
 
     public BasicBlock(String name, Function function) {
         super(name, LabelType.LABEL);
@@ -31,6 +33,11 @@ public class BasicBlock extends Value {
         this.domFrontier = new HashSet<>();
         this.function = function;
         this.hasRetOrBr = false;
+        this.pcs = new ArrayList<>();
+    }
+
+    public void addPC(ParallelCopy pc) {
+        pcs.add(pc);
     }
 
     public Function getFunction() {
@@ -111,6 +118,10 @@ public class BasicBlock extends Value {
         instructions.add(pos, inst);
     }
 
+    public Instruction getLastInst() {
+        return instructions.get(instructions.size() - 1);
+    }
+
     public ArrayList<Instruction> getInstructions() {
         return instructions;
     }
@@ -119,17 +130,23 @@ public class BasicBlock extends Value {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(name).append(":\n");
-        for (Instruction inst : instructions) {
+        for (int i = 0; i < instructions.size() - 1; i++) {
             sb.append("    ");
-            sb.append(inst);
+            sb.append(instructions.get(i));
             sb.append("\n");
         }
+        pcs.stream().map(ParallelCopy::toString).forEach(sb::append);
+        sb.append("    ").append(instructions.get(instructions.size() - 1)).append("\n");
         return sb.toString();
     }
 
     @Override
     public void buildMIPS() {
         mipsBuilder.buildLabel(name);
-        instructions.forEach(Instruction::buildMIPS);
+        for (int i = 0; i < instructions.size() - 1; i++) {
+            instructions.get(i).buildMIPS();
+        }
+        pcs.forEach(ParallelCopy::buildMIPS);
+        instructions.get(instructions.size() - 1).buildMIPS();
     }
 }

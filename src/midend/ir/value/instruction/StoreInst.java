@@ -32,8 +32,8 @@ public class StoreInst extends Instruction {
         // store是把一个i32存到i32*里面，因此要考虑tar是全局变量
         Value src = operands.get(0);
         Value tar = operands.get(1);
-        if (src instanceof ConstantInt) {
-            mipsBuilder.buildLi(Register.T0, Integer.parseInt(src.getName()));
+        if (src instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.T0, constantInt);
         } else {
             int srcPos = mipsBuilder.getSymbolPos(src.getName());
             mipsBuilder.buildLw(Register.T0, srcPos, Register.SP);

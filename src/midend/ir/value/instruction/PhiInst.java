@@ -4,7 +4,8 @@ import midend.ir.type.Type;
 import midend.ir.value.BasicBlock;
 import midend.ir.value.Value;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class PhiInst extends Instruction {
     private final Value tar;
@@ -31,6 +32,19 @@ public class PhiInst extends Instruction {
 
     public Value getTar() {
         return tar;
+    }
+
+    public HashMap<BasicBlock, HashSet<Value>> getOptSrcMap() {
+        HashMap<BasicBlock, HashSet<Value>> optSrcMap = new HashMap<>();
+        for (int i = 0; i < operands.size(); i += 2) {
+            BasicBlock block = (BasicBlock) operands.get(i + 1);
+            Value src = operands.get(i);
+            if (!optSrcMap.containsKey(block)) {
+                optSrcMap.put(block, new HashSet<>());
+            }
+            optSrcMap.get(block).add(src);
+        }
+        return optSrcMap;
     }
 
     @Override

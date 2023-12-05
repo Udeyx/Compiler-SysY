@@ -31,6 +31,15 @@ public class Function extends User {
         params.add(param);
     }
 
+    public void addBasicBlockBefore(BasicBlock newBlock, BasicBlock refBlock) {
+        for (int i = 0; i < basicBlocks.size(); i++) {
+            if (basicBlocks.get(i).equals(refBlock)) {
+                basicBlocks.add(i, newBlock);
+                break;
+            }
+        }
+    }
+
     public void addBasicBlock(BasicBlock basicBlock) {
         basicBlocks.add(basicBlock);
     }

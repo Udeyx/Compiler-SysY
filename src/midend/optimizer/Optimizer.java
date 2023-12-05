@@ -1,17 +1,14 @@
 package midend.optimizer;
 
 import midend.ir.Module;
-
-import java.util.ArrayList;
+import util.IOer;
 
 public class Optimizer {
-    private final ArrayList<Pass> passes;
-    private final Module module;
     private final static Optimizer OPTIMIZER = new Optimizer();
+    private final boolean dev;
 
     private Optimizer() {
-        this.passes = new ArrayList<>();
-        this.module = Module.getInstance();
+        this.dev = false;
     }
 
     public static Optimizer getInstance() {
@@ -19,7 +16,11 @@ public class Optimizer {
     }
 
     public void optimize() {
-        passes.add(new Mem2Reg());
-        passes.forEach(Pass::run);
+        new Mem2Reg().run();
+        if (dev)
+            IOer.printPhiIR();
+        new EliminatePhi().run();
+        if (dev)
+            IOer.printMoveIR();
     }
 }
