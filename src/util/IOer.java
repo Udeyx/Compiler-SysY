@@ -31,10 +31,12 @@ public class IOer {
 
     public static void printLex(ArrayList<Token> tokens) {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("output.txt");
             System.setOut(ps);
             tokens.forEach(System.out::println);
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printLex");
         }
@@ -42,10 +44,12 @@ public class IOer {
 
     public static void printParse(CompUnit treeRoot) {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("output.txt");
             System.setOut(ps);
             treeRoot.traverse();
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printParse");
         }
@@ -53,10 +57,12 @@ public class IOer {
 
     public static void printError() {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("error.txt");
             System.setOut(ps);
             System.out.println(Handler.getInstance());
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printError");
         }
@@ -64,10 +70,12 @@ public class IOer {
 
     public static void printIR() {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("llvm_ir.txt");
             System.setOut(ps);
             System.out.println(Module.getInstance());
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printIR");
         }
@@ -75,10 +83,12 @@ public class IOer {
 
     public static void printPhiIR() {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("llvm_ir_phi.txt");
             System.setOut(ps);
             System.out.println(Module.getInstance());
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printIR");
         }
@@ -86,10 +96,12 @@ public class IOer {
 
     public static void printMoveIR() {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("llvm_ir_move.txt");
             System.setOut(ps);
             System.out.println(Module.getInstance());
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printIR");
         }
@@ -97,10 +109,12 @@ public class IOer {
 
     public static void printMIPS() {
         try {
+            PrintStream prePs = System.out;
             PrintStream ps = new PrintStream("mips.txt");
             System.setOut(ps);
             System.out.println(Target.getInstance());
             ps.close();
+            System.setOut(prePs);
         } catch (FileNotFoundException e) {
             System.out.println("exception in printIR");
         }
