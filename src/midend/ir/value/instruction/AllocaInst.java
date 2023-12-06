@@ -35,4 +35,9 @@ public class AllocaInst extends Instruction {
         int pointerPos = mipsBuilder.allocStackSpace(name);
         mipsBuilder.buildSw(Register.K0, pointerPos, Register.SP);
     }
+
+    @Override
+    public boolean canBeDel() {
+        return false;
+    }
 }

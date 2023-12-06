@@ -14,5 +14,12 @@ public class User extends Value {
 
     public void replaceOperand(int pos, Value newOperand) {
         operands.set(pos, newOperand);
+        newOperand.addUse(this, pos);
+    }
+
+    public void delUsesFromOperands() {
+        for (int i = 0; i < operands.size(); i++) {
+            operands.get(i).removeUse(this, i);
+        }
     }
 }

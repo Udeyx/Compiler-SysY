@@ -118,11 +118,15 @@ public class BasicBlock extends Value {
         instructions.add(pos, inst);
     }
 
+    public void delInst(int pos) {
+        instructions.remove(pos);
+    }
+
     public Instruction getLastInst() {
         return instructions.get(instructions.size() - 1);
     }
 
-    public ArrayList<Instruction> getInstructions() {
+    public ArrayList<Instruction> getInsts() {
         return instructions;
     }
 

@@ -56,4 +56,9 @@ public class BranchInst extends Instruction {
             }
         }
     }
+
+    @Override
+    public boolean canBeDel() {
+        return false;
+    }
 }

@@ -31,7 +31,7 @@ public class Function extends User {
         params.add(param);
     }
 
-    public void addBasicBlockBefore(BasicBlock newBlock, BasicBlock refBlock) {
+    public void addBlockBefore(BasicBlock newBlock, BasicBlock refBlock) {
         for (int i = 0; i < basicBlocks.size(); i++) {
             if (basicBlocks.get(i).equals(refBlock)) {
                 basicBlocks.add(i, newBlock);
@@ -40,11 +40,11 @@ public class Function extends User {
         }
     }
 
-    public void addBasicBlock(BasicBlock basicBlock) {
+    public void addBlock(BasicBlock basicBlock) {
         basicBlocks.add(basicBlock);
     }
 
-    public ArrayList<BasicBlock> getBasicBlocks() {
+    public ArrayList<BasicBlock> getBlocks() {
         return basicBlocks;
     }
 

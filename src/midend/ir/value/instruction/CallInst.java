@@ -124,4 +124,9 @@ public class CallInst extends Instruction {
             mipsBuilder.buildSw(Register.V0, tarPos, Register.SP);
         }
     }
+
+    @Override
+    public boolean canBeDel() {
+        return false;
+    }
 }

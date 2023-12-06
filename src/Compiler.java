@@ -10,7 +10,6 @@ import java.util.ArrayList;
 public class Compiler {
     public static void main(String[] args) {
         TaskType taskType = TaskType.OPT;
-        boolean dev = false;
         String filePath = "testfile.txt";
 
         // read source file to source string
@@ -69,7 +68,7 @@ public class Compiler {
                     return;
                 }
                 compUnit.buildIR();
-                if (dev)
+                if (Optimizer.getInstance().isDev())
                     IOer.printIR();
                 Optimizer.getInstance().optimize();
                 Module.getInstance().buildMIPS();

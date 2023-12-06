@@ -42,4 +42,9 @@ public class ReturnInst extends Instruction {
         }
         mipsBuilder.buildJr(Register.RA);
     }
+
+    @Override
+    public boolean canBeDel() {
+        return false;
+    }
 }

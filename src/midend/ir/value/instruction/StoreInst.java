@@ -55,4 +55,9 @@ public class StoreInst extends Instruction {
     public Value getTar() {
         return operands.get(1);
     }
+
+    @Override
+    public boolean canBeDel() {
+        return false;
+    }
 }

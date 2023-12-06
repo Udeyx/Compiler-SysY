@@ -5,6 +5,7 @@ import midend.ir.type.ArrayType;
 import midend.ir.type.PointerType;
 import midend.ir.value.BasicBlock;
 import midend.ir.value.Function;
+import midend.ir.value.User;
 import midend.ir.value.Value;
 import midend.ir.value.instruction.*;
 
@@ -39,7 +40,7 @@ public class Mem2Reg extends Pass {
             irBuilder.setCurFunction(function);
             HashSet<Value> vars = varsPerFunc.get(function);
             vars.forEach(var -> reachDefs.put(var, new Stack<>()));
-            preTravel(function.getBasicBlocks().get(0));
+            preTravel(function.getBlocks().get(0));
             reachDefs.clear();
         }
     }
@@ -49,7 +50,7 @@ public class Mem2Reg extends Pass {
         HashSet<Value> vars = varsPerFunc.get(root.getFunction());
         HashMap<Value, Integer> defineNum = new HashMap<>();
         vars.forEach(var -> defineNum.put(var, 0));
-        for (Iterator<Instruction> it = root.getInstructions().iterator(); it.hasNext(); ) {
+        for (Iterator<Instruction> it = root.getInsts().iterator(); it.hasNext(); ) {
             Instruction inst = it.next();
             if (inst instanceof LoadInst loadInst) {
                 if (vars.contains(loadInst.getSrc())) {
@@ -62,6 +63,7 @@ public class Mem2Reg extends Pass {
                         if (use != null)
                             use.getUser().replaceOperand(use.getPos(), nowValue);
                     }
+                    inst.delUsesFromOperands();
                     it.remove();
                 }
             } else if (inst instanceof StoreInst storeInst) {
@@ -69,6 +71,7 @@ public class Mem2Reg extends Pass {
                     reachDefs.get(storeInst.getTar()).push(storeInst.getSrc());
                     int preNum = defineNum.get(storeInst.getTar());
                     defineNum.put(storeInst.getTar(), preNum + 1);
+                    inst.delUsesFromOperands();
                     it.remove();
                 }
             } else if (inst instanceof PhiInst phiInst) {
@@ -76,15 +79,17 @@ public class Mem2Reg extends Pass {
                 int preNum = defineNum.get(phiInst.getTar());
                 defineNum.put(phiInst.getTar(), preNum + 1);
             } else if (inst instanceof AllocaInst) {
-                if (!(((PointerType) inst.getType()).getEleType() instanceof ArrayType))
+                if (!(((PointerType) inst.getType()).getEleType() instanceof ArrayType)) {
+                    inst.delUsesFromOperands();
                     it.remove();
+                }
             }
         }
 //        System.out.println("//////////\ncur root is: " + root.getName() + "\n//////////");
 
         for (BasicBlock nextBlock : root.getNextBbs()) {
 //            System.out.println("next bb is: " + nextBlock.getName());
-            for (Instruction inst : nextBlock.getInstructions()) {
+            for (Instruction inst : nextBlock.getInsts()) {
                 if (inst instanceof PhiInst phiInst) {
 //                    System.out.println("tar of phi is: " + phiInst.getName());
                     if (reachDefs.get(phiInst.getTar()).isEmpty())
@@ -118,8 +123,8 @@ public class Mem2Reg extends Pass {
             for (Value var : vars) {
                 HashSet<BasicBlock> defineSet = new HashSet<>();
                 HashSet<BasicBlock> added = new HashSet<>();
-                for (BasicBlock block : function.getBasicBlocks()) {
-                    for (Instruction inst : block.getInstructions()) {
+                for (BasicBlock block : function.getBlocks()) {
+                    for (Instruction inst : block.getInsts()) {
                         if (inst instanceof StoreInst && ((StoreInst) inst).getTar().equals(var))
                             defineSet.add(block);
                     }
@@ -158,8 +163,8 @@ public class Mem2Reg extends Pass {
      */
     private void getAllVar() {
         for (Function function : module.getFunctions()) {
-            HashSet<Value> vars = function.getBasicBlocks().stream()
-                    .map(BasicBlock::getInstructions)
+            HashSet<Value> vars = function.getBlocks().stream()
+                    .map(BasicBlock::getInsts)
                     .flatMap(List::stream)
                     .filter(inst -> inst instanceof AllocaInst
                             && !(((PointerType) inst.getType()).getEleType() instanceof ArrayType))
@@ -174,7 +179,7 @@ public class Mem2Reg extends Pass {
         for (Function function : module.getFunctions()) {
             if (Function.LIB_FUNC.contains(function))
                 continue;
-            for (BasicBlock b : function.getBasicBlocks()) {
+            for (BasicBlock b : function.getBlocks()) {
 //                System.out.println("cur b is: " + b.getName());
 //                System.out.println("b's prev are: " + b.getPrevBbs().stream().map(Value::getName).collect(Collectors.joining(" ")));
                 for (BasicBlock a : b.getPrevBbs()) {
@@ -194,8 +199,8 @@ public class Mem2Reg extends Pass {
         for (Function function : module.getFunctions()) {
             if (Function.LIB_FUNC.contains(function))
                 continue;
-            for (int i = 0; i < function.getBasicBlocks().size(); i++) {
-                BasicBlock bb = function.getBasicBlocks().get(i);
+            for (int i = 0; i < function.getBlocks().size(); i++) {
+                BasicBlock bb = function.getBlocks().get(i);
                 HashSet<BasicBlock> strictDoms = bb.getDom().stream()
                         .filter(blk -> !blk.equals(bb))
                         .collect(Collectors.toCollection(HashSet::new));
@@ -223,15 +228,15 @@ public class Mem2Reg extends Pass {
                 continue;
             // initialize
             // 这里一定要注意不能改get出来的数据！！！
-            BasicBlock startBb = function.getBasicBlocks().get(0);
+            BasicBlock startBb = function.getBlocks().get(0);
             startBb.setDom(new HashSet<>(List.of(startBb)));
-            HashSet<BasicBlock> allBbs = new HashSet<>(function.getBasicBlocks());
-            for (int i = 1; i < function.getBasicBlocks().size(); i++) {
-                function.getBasicBlocks().get(i).setDom(allBbs);
+            HashSet<BasicBlock> allBbs = new HashSet<>(function.getBlocks());
+            for (int i = 1; i < function.getBlocks().size(); i++) {
+                function.getBlocks().get(i).setDom(allBbs);
             }
             while (true) {
                 boolean hasChange = false;
-                for (BasicBlock bb : function.getBasicBlocks()) {
+                for (BasicBlock bb : function.getBlocks()) {
                     HashSet<BasicBlock> inSet = new HashSet<>();
                     if (!bb.getPrevBbs().isEmpty())
                         inSet.addAll(allBbs);
@@ -251,13 +256,14 @@ public class Mem2Reg extends Pass {
         for (Function function : module.getFunctions()) {
             if (Function.LIB_FUNC.contains(function))
                 continue;
-            BasicBlock startBlock = function.getBasicBlocks().get(0);
-            for (Iterator<BasicBlock> it = function.getBasicBlocks().iterator(); it.hasNext(); ) {
+            BasicBlock startBlock = function.getBlocks().get(0);
+            for (Iterator<BasicBlock> it = function.getBlocks().iterator(); it.hasNext(); ) {
                 BasicBlock block = it.next();
                 if (!block.equals(startBlock) && block.getPrevBbs().isEmpty()) {
                     for (BasicBlock nextBlock : block.getNextBbs()) {
                         nextBlock.getPrevBbs().remove(block);
                     }
+                    block.getInsts().forEach(User::delUsesFromOperands);
                     it.remove();
                 }
             }
@@ -266,7 +272,7 @@ public class Mem2Reg extends Pass {
 
     private void printDomTree() {
         for (Function function : module.getFunctions()) {
-            for (BasicBlock block : function.getBasicBlocks()) {
+            for (BasicBlock block : function.getBlocks()) {
                 System.out.println(block.getName());
                 System.out.println("parent: " + ((block.getDomParent() == null) ?
                         "" : block.getDomParent().getName()));
@@ -283,7 +289,7 @@ public class Mem2Reg extends Pass {
 
     private void printCFG() {
         for (Function function : module.getFunctions()) {
-            for (BasicBlock block : function.getBasicBlocks()) {
+            for (BasicBlock block : function.getBlocks()) {
                 System.out.println(block.getName());
                 System.out.println(
                         block.getPrevBbs().stream()
@@ -303,7 +309,7 @@ public class Mem2Reg extends Pass {
 
     private void printDom() {
         for (Function function : module.getFunctions()) {
-            for (BasicBlock block : function.getBasicBlocks()) {
+            for (BasicBlock block : function.getBlocks()) {
                 System.out.println(block.getName());
                 System.out.println(
                         block.getDom().stream()
@@ -319,7 +325,7 @@ public class Mem2Reg extends Pass {
 
     private void printDF() {
         for (Function function : module.getFunctions()) {
-            for (BasicBlock block : function.getBasicBlocks()) {
+            for (BasicBlock block : function.getBlocks()) {
                 System.out.println("cur blk is: " + block.getName());
                 System.out.println(
                         block.getDomFrontier().stream()

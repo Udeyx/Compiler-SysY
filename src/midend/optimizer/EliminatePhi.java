@@ -1,6 +1,5 @@
 package midend.optimizer;
 
-import backend.instr.Instr;
 import midend.ir.value.BasicBlock;
 import midend.ir.value.Function;
 import midend.ir.value.Value;
@@ -37,7 +36,7 @@ public class EliminatePhi extends Pass {
                 continue;
             irBuilder.setCurFunction(function);
             HashMap<BasicBlock, BasicBlock> insertPos = new HashMap<>();
-            for (BasicBlock block : function.getBasicBlocks()) {
+            for (BasicBlock block : function.getBlocks()) {
                 HashMap<BasicBlock, BasicBlock> changeMap = new HashMap<>();
                 HashMap<BasicBlock, ParallelCopy> pcs = new HashMap<>();
                 for (BasicBlock preBlock : block.getPrevBbs()) {
@@ -59,7 +58,7 @@ public class EliminatePhi extends Pass {
                         .filter(entry -> !entry.getKey().equals(entry.getValue()))
                         .forEach(entry -> modifyEdge(entry.getKey(), entry.getValue(), block));
 
-                for (Iterator<Instruction> it = block.getInstructions().iterator(); it.hasNext(); ) {
+                for (Iterator<Instruction> it = block.getInsts().iterator(); it.hasNext(); ) {
                     Instruction inst = it.next();
                     if (inst instanceof PhiInst phiInst) {
                         HashMap<BasicBlock, HashSet<Value>> optSrcMap = phiInst.getOptSrcMap();
@@ -75,7 +74,7 @@ public class EliminatePhi extends Pass {
                     }
                 }
             }
-            insertPos.forEach((newBlock, value) -> irBuilder.getCurFunction().addBasicBlockBefore(newBlock, value));
+            insertPos.forEach((newBlock, value) -> irBuilder.getCurFunction().addBlockBefore(newBlock, value));
         }
     }
 

@@ -170,7 +170,7 @@ public class Stmt extends Node {
 
         // build cond, set cond to 1 if cond doesn't exist
         irBuilder.setCurBasicBlock(condBlock);
-        irBuilder.getCurFunction().addBasicBlock(condBlock);
+        irBuilder.getCurFunction().addBlock(condBlock);
         // build loop body's IR
         if (children.stream().noneMatch(child -> child instanceof Cond)) {
             irBuilder.buildNoCondBranch(loopBody); // jump to loopBody
@@ -184,20 +184,20 @@ public class Stmt extends Node {
         }
         // build loop body's IR
         irBuilder.setCurBasicBlock(loopBody);
-        irBuilder.getCurFunction().addBasicBlock(loopBody);
+        irBuilder.getCurFunction().addBlock(loopBody);
         children.get(children.size() - 1).buildIR();
         irBuilder.buildNoCondBranch(increaseBlock);
 
         // build IR for the optional second forStmt
         irBuilder.setCurBasicBlock(increaseBlock);
-        irBuilder.getCurFunction().addBasicBlock(increaseBlock);
+        irBuilder.getCurFunction().addBlock(increaseBlock);
         if (children.get(children.size() - 3) instanceof ForStmt)
             children.get(children.size() - 3).buildIR();
 
         // jump to condBlock
         irBuilder.buildNoCondBranch(condBlock);
 
-        irBuilder.getCurFunction().addBasicBlock(finalBlock);
+        irBuilder.getCurFunction().addBlock(finalBlock);
         irBuilder.setCurBasicBlock(finalBlock);
 
         // clear the curIncreaseBlock and curFinalBlock
@@ -216,7 +216,7 @@ public class Stmt extends Node {
 
             // set and build true block
             irBuilder.setCurBasicBlock(trueBlock);
-            irBuilder.getCurFunction().addBasicBlock(trueBlock);
+            irBuilder.getCurFunction().addBlock(trueBlock);
             children.get(4).buildIR(); // build true stmt
             irBuilder.buildNoCondBranch(finalBlock);
 
@@ -228,17 +228,17 @@ public class Stmt extends Node {
 
             // set and build true block
             irBuilder.setCurBasicBlock(trueBlock);
-            irBuilder.getCurFunction().addBasicBlock(trueBlock);
+            irBuilder.getCurFunction().addBlock(trueBlock);
             children.get(4).buildIR(); // build true stmt
             irBuilder.buildNoCondBranch(finalBlock);
 
             // set and build false block
             irBuilder.setCurBasicBlock(falseBlock);
-            irBuilder.getCurFunction().addBasicBlock(falseBlock);
+            irBuilder.getCurFunction().addBlock(falseBlock);
             children.get(6).buildIR();
             irBuilder.buildNoCondBranch(finalBlock);
         }
-        irBuilder.getCurFunction().addBasicBlock(finalBlock);
+        irBuilder.getCurFunction().addBlock(finalBlock);
         irBuilder.setCurBasicBlock(finalBlock);
     }
 
@@ -283,7 +283,7 @@ public class Stmt extends Node {
         ConstantInt zeroCon = irBuilder.buildConstantInt(0);
         ICmpInst iCmpInst = irBuilder.buildICmpWithLV(ICmpType.NE, cond, zeroCon);
         irBuilder.buildBranch(iCmpInst, trueBlock, falseBlock);
-        eqBlocks.forEach(irBuilder.getCurFunction()::addBasicBlock);
+        eqBlocks.forEach(irBuilder.getCurFunction()::addBlock);
     }
 
 

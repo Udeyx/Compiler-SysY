@@ -89,7 +89,7 @@ public class IRBuilder {
         nameSpace.addFunc(function);
         BasicBlock firstBlock = buildBasicBlock(function);
         curBasicBlock = firstBlock;
-        function.addBasicBlock(firstBlock);
+        function.addBlock(firstBlock);
         module.addFunction(function);
         return function;
     }
