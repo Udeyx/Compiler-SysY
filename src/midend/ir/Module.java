@@ -68,4 +68,15 @@ public class Module {
         functions.forEach(Function::buildMIPS);
         MIPSBuilder.getInstance().buildLabel("end");
     }
+
+    public void buildFIFOMIPS() {
+        MIPSBuilder.getInstance().buildData();
+        globalVars.forEach(GlobalVar::buildMIPS);
+        stringLiterals.forEach(StringLiteral::buildMIPS);
+        MIPSBuilder.getInstance().buildText();
+        MIPSBuilder.getInstance().buildJal("main");
+        MIPSBuilder.getInstance().buildJ("end");
+        functions.forEach(Function::buildFIFOMIPS);
+        MIPSBuilder.getInstance().buildLabel("end");
+    }
 }

@@ -68,11 +68,11 @@ public class GEPInst extends Instruction {
             indices.add(operands.get(i));
         }
         Value index = indices.get(indices.size() - 1);
-        // T0存偏移，T1存基地址，记得偏移要乘4!!!
+        // K0存偏移，K1存基地址，记得偏移要乘4!!!
         if (index instanceof ConstantInt constantInt) {
             mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
-            int offPos = mipsBuilder.getSymbolPos(index.getName());
+            int offPos = mipsBuilder.getSymbolPos(index);
             mipsBuilder.buildLw(Register.K0, offPos, Register.SP);
         }
         mipsBuilder.buildSll(Register.K0, Register.K0, 2);
@@ -80,14 +80,58 @@ public class GEPInst extends Instruction {
         if (pointer.getName().charAt(0) == '@') {
             mipsBuilder.buildLa(Register.K1, pointer.getName());
         } else {
-            int srcPos = mipsBuilder.getSymbolPos(pointer.getName());
+            int srcPos = mipsBuilder.getSymbolPos(pointer);
             mipsBuilder.buildLw(Register.K1, srcPos, Register.SP);
         }
         mipsBuilder.buildAddu(Register.K0, Register.K1, Register.K0);
 
         // 局部变量等于基地址减去偏移量！！！全局变量不知道
 
-        int tarPos = mipsBuilder.allocStackSpace(tar.getName());
+        int tarPos = mipsBuilder.allocStackSpace(this);
         mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        super.buildFIFOMIPS();
+        Value pointer = operands.get(0);
+        ArrayList<Value> indices = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            indices.add(operands.get(i));
+        }
+        Value index = indices.get(indices.size() - 1);
+        // K0存偏移，K1存基地址，记得偏移要乘4!!!
+        Register indexReg;
+        if (index instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.K0, constantInt);
+            indexReg = Register.K0;
+        } else {
+            indexReg = mipsBuilder.getSymbolReg(index);
+            if (indexReg == null) {
+                int offPos = mipsBuilder.getSymbolPos(index);
+                mipsBuilder.buildLw(Register.K0, offPos, Register.SP);
+                indexReg = Register.K0;
+            }
+        }
+
+        Register baseReg;
+        if (pointer.getName().charAt(0) == '@') {
+            mipsBuilder.buildLa(Register.K1, pointer.getName());
+            baseReg = Register.K1;
+        } else {
+            baseReg = mipsBuilder.getSymbolReg(pointer);
+            if (baseReg == null) {
+                int srcPos = mipsBuilder.getSymbolPos(pointer);
+                mipsBuilder.buildLw(Register.K1, srcPos, Register.SP);
+                baseReg = Register.K1;
+            }
+        }
+
+
+        int tarPos = mipsBuilder.allocStackSpace(this);
+        Register tarReg = mipsBuilder.allocReg(this);
+
+        mipsBuilder.buildSll(Register.K0, indexReg, 2);
+        mipsBuilder.buildAddu(tarReg, baseReg, Register.K0);
     }
 }

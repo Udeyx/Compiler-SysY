@@ -22,4 +22,9 @@ public class StringLiteral extends Value {
 //        super.buildMIPS();
         mipsBuilder.buildAsciiz(name, content.replace("\n", "\\n"));
     }
+
+    @Override
+    public void buildFIFOMIPS() {
+        mipsBuilder.buildAsciiz(name, content.replace("\n", "\\n"));
+    }
 }

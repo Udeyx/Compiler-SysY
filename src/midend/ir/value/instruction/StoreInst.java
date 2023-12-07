@@ -35,17 +35,49 @@ public class StoreInst extends Instruction {
         if (src instanceof ConstantInt constantInt) {
             mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
-            int srcPos = mipsBuilder.getSymbolPos(src.getName());
+            int srcPos = mipsBuilder.getSymbolPos(src);
             mipsBuilder.buildLw(Register.K0, srcPos, Register.SP);
         }
         if (tar instanceof GlobalVar) {
             mipsBuilder.buildLa(Register.K1, tar.getName());
             mipsBuilder.buildSw(Register.K0, 0, Register.K1);
         } else {
-            int pointerPos = mipsBuilder.getSymbolPos(tar.getName());
+            int pointerPos = mipsBuilder.getSymbolPos(tar);
             mipsBuilder.buildLw(Register.K1, pointerPos, Register.SP);
             mipsBuilder.buildSw(Register.K0, 0, Register.K1);
         }
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        super.buildFIFOMIPS();
+        Value src = operands.get(0);
+        Value tar = operands.get(1);
+        Register srcReg;
+        if (src instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.K0, constantInt);
+            srcReg = Register.K0;
+        } else {
+            srcReg = mipsBuilder.getSymbolReg(src);
+            if (srcReg == null) {
+                int srcPos = mipsBuilder.getSymbolPos(src);
+                mipsBuilder.buildLw(Register.K0, srcPos, Register.SP);
+                srcReg = Register.K0;
+            }
+        }
+        Register tarReg;
+        if (tar instanceof GlobalVar) {
+            mipsBuilder.buildLa(Register.K1, tar.getName());
+            tarReg = Register.K1;
+        } else {
+            tarReg = mipsBuilder.getSymbolReg(tar);
+            if (tarReg == null) {
+                int pointerPos = mipsBuilder.getSymbolPos(tar);
+                mipsBuilder.buildLw(Register.K1, pointerPos, Register.SP);
+                tarReg = Register.K1;
+            }
+        }
+        mipsBuilder.buildSw(srcReg, 0, tarReg);
     }
 
     public Value getSrc() {

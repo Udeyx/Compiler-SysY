@@ -57,4 +57,20 @@ public class GlobalVar extends User {
                 mipsBuilder.buildWord(name, initVal);
         }
     }
+
+    @Override
+    public void buildFIFOMIPS() {
+        Type eleType = ((PointerType) type).getEleType();
+        if (eleType.equals(IntegerType.I32)) {
+            if (initVal.isEmpty())
+                mipsBuilder.buildSpace(name, 1);
+            else
+                mipsBuilder.buildWord(name, initVal);
+        } else {
+            if (initVal.isEmpty())
+                mipsBuilder.buildSpace(name, ((ArrayType) eleType).getEleNum());
+            else
+                mipsBuilder.buildWord(name, initVal);
+        }
+    }
 }

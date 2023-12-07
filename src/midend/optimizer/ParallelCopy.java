@@ -71,6 +71,11 @@ public class ParallelCopy {
         moves.forEach(Move::buildMIPS);
     }
 
+    public void buildFIFOMIPS() {
+        parallelToSeq();
+        moves.forEach(Move::buildFIFOMIPS);
+    }
+
     @Override
     public String toString() {
         parallelToSeq();

@@ -8,7 +8,7 @@ public class Optimizer {
     private final boolean dev;
 
     private Optimizer() {
-        this.dev = false;
+        this.dev = true;
     }
 
     public boolean isDev() {

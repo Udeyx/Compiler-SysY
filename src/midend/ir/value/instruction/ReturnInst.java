@@ -35,7 +35,7 @@ public class ReturnInst extends Instruction {
             if (src instanceof ConstantInt constantInt) {
                 mipsBuilder.buildLi(Register.V0, constantInt);
             } else {
-                int srcPos = mipsBuilder.getSymbolPos(src.getName());
+                int srcPos = mipsBuilder.getSymbolPos(src);
                 mipsBuilder.buildLw(Register.V0, srcPos, Register.SP);
             }
 
@@ -46,5 +46,26 @@ public class ReturnInst extends Instruction {
     @Override
     public boolean canBeDel() {
         return false;
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        super.buildFIFOMIPS();
+        if (!type.equals(VoidType.VOID)) {
+            Value src = operands.get(0);
+            if (src instanceof ConstantInt constantInt) {
+                mipsBuilder.buildLi(Register.V0, constantInt);
+            } else {
+                Register srcReg = mipsBuilder.getSymbolReg(src);
+                if (srcReg != null) {
+                    mipsBuilder.buildAddu(Register.V0, Register.ZERO, srcReg);
+                } else {
+                    int srcPos = mipsBuilder.getSymbolPos(src);
+                    mipsBuilder.buildLw(Register.V0, srcPos, Register.SP);
+                }
+            }
+
+        }
+        mipsBuilder.buildJr(Register.RA);
     }
 }

@@ -40,14 +40,14 @@ public class ICmpInst extends Instruction {
         if (operand1 instanceof ConstantInt constantInt) {
             mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
-            int op1Pos = mipsBuilder.getSymbolPos(operand1.getName());
+            int op1Pos = mipsBuilder.getSymbolPos(operand1);
             mipsBuilder.buildLw(Register.K0, op1Pos, Register.SP);
         }
 
         if (operand2 instanceof ConstantInt constantInt) {
             mipsBuilder.buildLi(Register.K1, constantInt);
         } else {
-            int op2Pos = mipsBuilder.getSymbolPos(operand2.getName());
+            int op2Pos = mipsBuilder.getSymbolPos(operand2);
             mipsBuilder.buildLw(Register.K1, op2Pos, Register.SP);
         }
 
@@ -61,7 +61,52 @@ public class ICmpInst extends Instruction {
         };
 
         mipsBuilder.buildCmp(Register.K0, Register.K0, Register.K1, opCode);
-        int tarPos = mipsBuilder.allocStackSpace(tar.getName());
+        int tarPos = mipsBuilder.allocStackSpace(this);
         mipsBuilder.buildSw(Register.K0, tarPos, Register.SP);
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        super.buildFIFOMIPS();
+        Value operand1 = operands.get(0);
+        Value operand2 = operands.get(1);
+        Register op1Reg;
+        Register op2Reg;
+        if (operand1 instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.K0, constantInt);
+            op1Reg = Register.K0;
+        } else {
+            op1Reg = mipsBuilder.getSymbolReg(operand1);
+            if (op1Reg == null) {
+                int op1Pos = mipsBuilder.getSymbolPos(operand1);
+                mipsBuilder.buildLw(Register.K0, op1Pos, Register.SP);
+                op1Reg = Register.K0;
+            }
+        }
+
+        if (operand2 instanceof ConstantInt constantInt) {
+            mipsBuilder.buildLi(Register.K1, constantInt);
+            op2Reg = Register.K1;
+        } else {
+            op2Reg = mipsBuilder.getSymbolReg(operand2);
+            if (op2Reg == null) {
+                int op2Pos = mipsBuilder.getSymbolPos(operand2);
+                mipsBuilder.buildLw(Register.K1, op2Pos, Register.SP);
+                op2Reg = Register.K1;
+            }
+        }
+
+        OpCode opCode = switch (iCmpType) {
+            case EQ -> OpCode.SEQ;
+            case NE -> OpCode.SNE;
+            case SGT -> OpCode.SGT;
+            case SGE -> OpCode.SGE;
+            case SLT -> OpCode.SLT;
+            default -> OpCode.SLE;
+        };
+
+        int tarPos = mipsBuilder.allocStackSpace(this);
+        Register tarReg = mipsBuilder.allocReg(this);
+        mipsBuilder.buildCmp(tarReg, op1Reg, op2Reg, opCode);
     }
 }

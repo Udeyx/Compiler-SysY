@@ -39,11 +39,37 @@ public class BranchInst extends Instruction {
         if (cond instanceof ConstantInt constantInt) {
             mipsBuilder.buildLi(Register.K0, constantInt);
         } else {
-            int condPos = mipsBuilder.getSymbolPos(cond.getName());
+            int condPos = mipsBuilder.getSymbolPos(cond);
             mipsBuilder.buildLw(Register.K0, condPos, Register.SP);
         }
         mipsBuilder.buildBne(Register.K0, Register.ZERO, trueBlock.getName());
         mipsBuilder.buildJ(falseBlock.getName());
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        super.buildFIFOMIPS();
+        Value cond = operands.get(0);
+        Value trueBlock = operands.get(1);
+        Value falseBlock = operands.get(2);
+        Register condReg;
+        if (trueBlock.equals(falseBlock)) {
+            mipsBuilder.buildJ(trueBlock.getName());
+        } else {
+            if (cond instanceof ConstantInt constantInt) {
+                mipsBuilder.buildLi(Register.K0, constantInt);
+                condReg = Register.K0;
+            } else {
+                condReg = mipsBuilder.getSymbolReg(cond);
+                if (condReg == null) {
+                    int condPos = mipsBuilder.getSymbolPos(cond);
+                    mipsBuilder.buildLw(Register.K0, condPos, Register.SP);
+                    condReg = Register.K0;
+                }
+            }
+            mipsBuilder.buildBne(condReg, Register.ZERO, trueBlock.getName());
+            mipsBuilder.buildJ(falseBlock.getName());
+        }
     }
 
     public void changeDes(BasicBlock preBlock, BasicBlock newBlock) {

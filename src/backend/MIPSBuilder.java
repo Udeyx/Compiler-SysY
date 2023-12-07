@@ -13,21 +13,29 @@ import backend.instr.r.*;
 import backend.instr.i.LWInstr;
 import backend.instr.i.SWInstr;
 import midend.ir.value.ConstantInt;
+import midend.ir.value.Value;
 import util.OpCode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class MIPSBuilder {
     private static final MIPSBuilder MIPS_BUILDER = new MIPSBuilder();
     private final Target target;
-    private final HashMap<String, Integer> symbolTable;
+    private final HashMap<Value, Integer> symbolTable;
     private int stackTop;
+    private final ArrayList<VRPair> vrPairs;
+    private final HashMap<Value, Register> val2reg;
+    private final HashMap<Register, Value> reg2val;
 
     private MIPSBuilder() {
         this.target = Target.getInstance();
         this.symbolTable = new HashMap<>();
         this.stackTop = 0;
+        this.vrPairs = new ArrayList<>();
+        this.val2reg = new HashMap<>();
+        this.reg2val = new HashMap<>();
     }
 
     public static MIPSBuilder getInstance() {
@@ -37,18 +45,101 @@ public class MIPSBuilder {
     public void enterFunction() {
         stackTop = 0;
         symbolTable.clear();
+        initVRRelation();
     }
 
-    public int getSymbolPos(String name) {
-        return symbolTable.get(name);
+    private void initVRRelation() {
+        vrPairs.clear();
+        val2reg.clear();
+        reg2val.clear();
+        reg2val.put(Register.T0, null);
+        reg2val.put(Register.T1, null);
+        reg2val.put(Register.T2, null);
+        reg2val.put(Register.T3, null);
+        reg2val.put(Register.T4, null);
+        reg2val.put(Register.T5, null);
+        reg2val.put(Register.T6, null);
+        reg2val.put(Register.T7, null);
+        reg2val.put(Register.T8, null);
+        reg2val.put(Register.T9, null);
+        reg2val.put(Register.S0, null);
+        reg2val.put(Register.S1, null);
+        reg2val.put(Register.S2, null);
+        reg2val.put(Register.S3, null);
+        reg2val.put(Register.S4, null);
+        reg2val.put(Register.S5, null);
+        reg2val.put(Register.S6, null);
+        reg2val.put(Register.S7, null);
     }
 
-    public boolean hasSymbol(String name) {
-        return symbolTable.containsKey(name);
+    public Register allocReg(Value value) {
+        if (vrPairs.size() < 18) { // no need to grab
+            Register reg = null;
+            for (Map.Entry<Register, Value> entry : reg2val.entrySet()) {
+                if (entry.getValue() == null) {
+                    reg = entry.getKey();
+                    vrPairs.add(new VRPair(value, reg));
+                    val2reg.put(value, reg);
+                    reg2val.put(reg, value);
+                    break;
+                }
+            }
+            System.out.println("alloc " + reg + " to " + value.getName());
+            return reg;
+        } else {
+            // remove old value
+            VRPair vrPair = vrPairs.remove(0);
+            Value preVal = vrPair.getVal();
+            Register reg = vrPair.getReg();
+            val2reg.remove(preVal);
+            reg2val.put(reg, null);
+            System.out.println("grab " + reg + " from " + preVal.getName());
+
+            // write back to mem
+            /*
+                preValue只可能是I32，因为目前想做的只是把LLVM的虚拟寄存器转换为实体寄存器，
+                并不会干预原来操作指针的alloca, load, store
+                也就是和AddInst的翻译类似，而不是store那样
+             */
+            int preValuePos = getSymbolPos(preVal);
+            buildSw(reg, preValuePos, Register.SP);
+
+            // alloc reg for new value
+            vrPairs.add(new VRPair(value, reg));
+            val2reg.put(value, reg);
+            reg2val.put(reg, value);
+            System.out.println("alloc " + reg + " to " + value.getName());
+            return reg;
+        }
     }
 
-    public int allocStackSpace(String name) {
-        symbolTable.put(name, stackTop);
+    public void writeBackAll() {
+        for (VRPair vrPair : vrPairs) {
+            Value preVal = vrPair.getVal();
+            Register reg = vrPair.getReg();
+            val2reg.remove(preVal);
+            reg2val.put(reg, null);
+            int preValuePos = getSymbolPos(preVal);
+            buildSw(reg, preValuePos, Register.SP);
+        }
+        vrPairs.clear();
+        System.out.println("write back all, clear all vrPairs");
+    }
+
+    public Register getSymbolReg(Value value) {
+        return val2reg.get(value);
+    }
+
+    public int getSymbolPos(Value value) {
+        return symbolTable.get(value);
+    }
+
+    public boolean hasSymbol(Value value) {
+        return symbolTable.containsKey(value);
+    }
+
+    public int allocStackSpace(Value value) {
+        symbolTable.put(value, stackTop);
         stackTop -= 4;
         return stackTop + 4;
     }

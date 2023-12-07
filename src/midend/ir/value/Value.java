@@ -50,6 +50,10 @@ public class Value {
         mipsBuilder.buildComment(this.toString());
     }
 
+    public void buildFIFOMIPS() {
+        mipsBuilder.buildComment(this.toString());
+    }
+
     @Override
     public String toString() {
         return super.toString();

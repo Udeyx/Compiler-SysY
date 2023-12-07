@@ -32,8 +32,27 @@ public class AllocaInst extends Instruction {
         int startPos = mipsBuilder.allocAnonymousStackSpace(size);
         mipsBuilder.buildLi(Register.K0, startPos);
         mipsBuilder.buildAddu(Register.K0, Register.K0, Register.SP);
-        int pointerPos = mipsBuilder.allocStackSpace(name);
+        int pointerPos = mipsBuilder.allocStackSpace(this);
         mipsBuilder.buildSw(Register.K0, pointerPos, Register.SP);
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        super.buildFIFOMIPS();
+        int size;
+        if (((PointerType) type).getEleType() instanceof ArrayType) {
+            int eleNum = ((ArrayType) ((PointerType) type).getEleType()).getEleNum();
+            size = eleNum * 4;
+        } else
+            size = 4;
+        int startPos = mipsBuilder.allocAnonymousStackSpace(size);
+
+        // deal with pointer
+        int pointerPos = mipsBuilder.allocStackSpace(this);
+        Register pointerReg = mipsBuilder.allocReg(this);
+
+        mipsBuilder.buildLi(Register.K0, startPos);
+        mipsBuilder.buildAddu(pointerReg, Register.K0, Register.SP);
     }
 
     @Override

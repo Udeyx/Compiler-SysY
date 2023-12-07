@@ -153,4 +153,15 @@ public class BasicBlock extends Value {
         pcs.forEach(ParallelCopy::buildMIPS);
         instructions.get(instructions.size() - 1).buildMIPS();
     }
+
+    @Override
+    public void buildFIFOMIPS() {
+        mipsBuilder.buildLabel(name);
+        for (int i = 0; i < instructions.size() - 1; i++) {
+            instructions.get(i).buildFIFOMIPS();
+        }
+        pcs.forEach(ParallelCopy::buildFIFOMIPS);
+        mipsBuilder.writeBackAll();
+        instructions.get(instructions.size() - 1).buildFIFOMIPS();
+    }
 }

@@ -91,9 +91,27 @@ public class Function extends User {
 
         // 把参数的名字加入符号表
         for (int i = params.size() - 1; i >= 0; i--)
-            mipsBuilder.allocStackSpace(params.get(i).getName());
+            mipsBuilder.allocStackSpace(params.get(i));
 
         // build所有block
         basicBlocks.forEach(BasicBlock::buildMIPS);
+    }
+
+    @Override
+    public void buildFIFOMIPS() {
+        if (name.equals("@getint") || name.equals("@putint")
+                || name.equals("@putch") || name.equals("@putstr"))
+            return;
+
+        // clear name space and stack
+        mipsBuilder.enterFunction();
+        mipsBuilder.buildLabel(name);
+
+        // 把参数的名字加入符号表
+        for (int i = params.size() - 1; i >= 0; i--)
+            mipsBuilder.allocStackSpace(params.get(i));
+
+        // build所有block
+        basicBlocks.forEach(BasicBlock::buildFIFOMIPS);
     }
 }
