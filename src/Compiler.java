@@ -72,7 +72,6 @@ public class Compiler {
                     IOer.printIR();
                 Optimizer.getInstance().optimize();
                 Module.getInstance().buildFIFOMIPS();
-//                Module.getInstance().buildMIPS();
                 IOer.printMIPS();
             }
         }
