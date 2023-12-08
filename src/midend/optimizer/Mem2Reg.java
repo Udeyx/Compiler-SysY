@@ -59,10 +59,7 @@ public class Mem2Reg extends Pass {
                         nowValue = irBuilder.buildConstantInt(0);
                     else
                         nowValue = reachDefs.get(loadInst.getSrc()).peek();
-                    for (Use use : loadInst.getUses()) {
-                        if (use != null)
-                            use.getUser().replaceOperand(use.getPos(), nowValue);
-                    }
+                    loadInst.replaceUseOfThisWith(nowValue);
                     inst.delUsesFromOperands();
                     it.remove();
                 }

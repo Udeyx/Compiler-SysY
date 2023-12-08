@@ -1,6 +1,5 @@
 package midend.optimizer;
 
-import midend.ir.Module;
 import util.IOer;
 
 public class Optimizer {
@@ -23,10 +22,15 @@ public class Optimizer {
         // mem2reg
         new Mem2Reg().run();
 
+        // GVN && GCM
+        new GVNAndGCM().run();
+
         // del dead code
         new DelDeadCode().run();
+
         if (dev)
             IOer.printPhiIR();
+
 
         // eliminate phi
         new EliminatePhi().run();

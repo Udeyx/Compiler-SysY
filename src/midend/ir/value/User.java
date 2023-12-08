@@ -22,4 +22,8 @@ public class User extends Value {
             operands.get(i).removeUse(this, i);
         }
     }
+
+    public ArrayList<Value> getOperands() {
+        return operands;
+    }
 }

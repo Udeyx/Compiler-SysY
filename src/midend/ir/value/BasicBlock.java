@@ -13,14 +13,15 @@ public class BasicBlock extends Value {
     private final ArrayList<Instruction> instructions;
     private final HashSet<BasicBlock> prevBbs;
     private final HashSet<BasicBlock> nextBbs;
+    private final Function function;
+    private boolean hasRetOrBr;
+    private ArrayList<ParallelCopy> pcs;
     // 支配树
     private HashSet<BasicBlock> doms;
     private BasicBlock domParent;
     private final ArrayList<BasicBlock> domChildren;
     private final HashSet<BasicBlock> domFrontier;
-    private final Function function;
-    private boolean hasRetOrBr;
-    private ArrayList<ParallelCopy> pcs;
+    private int depth;
 
     public BasicBlock(String name, Function function) {
         super(name, LabelType.LABEL);
@@ -34,6 +35,7 @@ public class BasicBlock extends Value {
         this.function = function;
         this.hasRetOrBr = false;
         this.pcs = new ArrayList<>();
+        this.depth = 0;
     }
 
     public void addPC(ParallelCopy pc) {
@@ -163,5 +165,22 @@ public class BasicBlock extends Value {
         pcs.forEach(ParallelCopy::buildFIFOMIPS);
         mipsBuilder.writeBackAll();
         instructions.get(instructions.size() - 1).buildFIFOMIPS();
+    }
+
+    public void calDepth() {
+        depth = 0;
+        BasicBlock x = this;
+        while (x.domParent != null) {
+            depth++;
+            x = x.domParent;
+        }
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void addInstBeforeLast(Instruction inst) {
+        instructions.add(instructions.size() - 1, inst);
     }
 }

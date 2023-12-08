@@ -27,6 +27,22 @@ public class CallInst extends Instruction {
         this.operands.addAll(arguments);
     }
 
+    public Function getFunction() {
+        return (Function) operands.get(0);
+    }
+
+    @Override
+    public String calGVNHash() {
+        Function function = (Function) operands.get(0);
+        ArrayList<Value> arguments = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            arguments.add(operands.get(i));
+        }
+        String prefix = "call " + type + " " + function.getName() + "(";
+        String argsStr = arguments.stream().map(Value::asArg).collect(Collectors.joining(", "));
+        return prefix + argsStr + ")";
+    }
+
     @Override
     public String toString() {
         Function function = (Function) operands.get(0);

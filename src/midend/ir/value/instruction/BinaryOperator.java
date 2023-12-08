@@ -121,4 +121,48 @@ public class BinaryOperator extends Instruction {
             }
         }
     }
+
+    public boolean firstIsConst() {
+        return operands.get(0) instanceof ConstantInt;
+    }
+
+    public boolean secondIsConst() {
+        return operands.get(1) instanceof ConstantInt;
+    }
+
+    public int evaluate() {
+        int op1 = Integer.parseInt(operands.get(0).getName());
+        int op2 = Integer.parseInt(operands.get(1).getName());
+        return switch (boType) {
+            case ADD -> op1 + op2;
+            case SUB -> op1 - op2;
+            case MUL -> op1 * op2;
+            case SDIV -> op1 / op2;
+            case SREM -> op1 % op2;
+        };
+    }
+
+    @Override
+    public String calGVNHash() {
+        Value op1 = operands.get(0);
+        Value op2 = operands.get(1);
+        return switch (boType) {
+            case ADD, MUL -> op1.getName().compareTo(op2.getName()) > 0 ?
+                    boType + op1.getName() + op2.getName() :
+                    boType + op2.getName() + op1.getName();
+            default -> boType + op1.getName() + op2.getName();
+        };
+    }
+
+    public Value getOp1() {
+        return operands.get(0);
+    }
+
+    public Value getOp2() {
+        return operands.get(1);
+    }
+
+    public BOType getBoType() {
+        return boType;
+    }
 }

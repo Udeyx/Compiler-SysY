@@ -34,6 +34,13 @@ public class Value {
         }
     }
 
+    public void replaceUseOfThisWith(Value newValue) {
+        for (Use use : uses) {
+            if (use != null)
+                use.getUser().replaceOperand(use.getPos(), newValue);
+        }
+    }
+
     public ArrayList<Use> getUses() {
         return uses;
     }

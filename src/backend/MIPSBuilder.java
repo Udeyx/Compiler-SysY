@@ -84,7 +84,6 @@ public class MIPSBuilder {
                     break;
                 }
             }
-            System.out.println("alloc " + reg + " to " + value.getName());
             return reg;
         } else {
             // remove old value
@@ -93,7 +92,6 @@ public class MIPSBuilder {
             Register reg = vrPair.getReg();
             val2reg.remove(preVal);
             reg2val.put(reg, null);
-            System.out.println("grab " + reg + " from " + preVal.getName());
 
             // write back to mem
             /*
@@ -108,7 +106,6 @@ public class MIPSBuilder {
             vrPairs.add(new VRPair(value, reg));
             val2reg.put(value, reg);
             reg2val.put(reg, value);
-            System.out.println("alloc " + reg + " to " + value.getName());
             return reg;
         }
     }
@@ -123,7 +120,6 @@ public class MIPSBuilder {
             buildSw(reg, preValuePos, Register.SP);
         }
         vrPairs.clear();
-        System.out.println("write back all, clear all vrPairs");
     }
 
     public Register getSymbolReg(Value value) {

@@ -33,6 +33,18 @@ public class ICmpInst extends Instruction {
     }
 
     @Override
+    public String calGVNHash() {
+        Value operand1 = operands.get(0);
+        Value operand2 = operands.get(1);
+        if (iCmpType.equals(ICmpType.EQ) || iCmpType.equals(ICmpType.NE))
+            return operand1.getName().compareTo(operand2.getName()) > 0 ?
+                    iCmpType + operand1.getName() + operand2.getName() :
+                    iCmpType + operand2.getName() + operand1.getName();
+
+        return iCmpType + operand1.getName() + operand2.getName();
+    }
+
+    @Override
     public void buildMIPS() {
         super.buildMIPS();
         Value operand1 = operands.get(0);

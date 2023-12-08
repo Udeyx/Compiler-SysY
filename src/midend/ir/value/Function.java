@@ -1,6 +1,8 @@
 package midend.ir.value;
 
 import midend.ir.type.*;
+import midend.ir.value.instruction.CallInst;
+import midend.ir.value.instruction.Instruction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 public class Function extends User {
     private final ArrayList<BasicBlock> basicBlocks;
     private final ArrayList<Param> params;
+    private Boolean pure;
     public static final Function GETINT = new Function("@getint",
             new FunctionType(new ArrayList<>(), IntegerType.I32));
     public static final Function PUTINT = new Function("@putint",
@@ -25,6 +28,7 @@ public class Function extends User {
         super(name, type);
         this.basicBlocks = new ArrayList<>();
         this.params = new ArrayList<>();
+        this.pure = null;
     }
 
     public void addParam(Param param) {
@@ -113,5 +117,37 @@ public class Function extends User {
 
         // build所有block
         basicBlocks.forEach(BasicBlock::buildFIFOMIPS);
+    }
+
+    public boolean isPure() {
+        if (pure != null)
+            return pure;
+
+        if (LIB_FUNC.contains(this)) {
+            pure = false;
+            return false;
+        }
+
+        for (Param param : params) {
+            if (param.getType() instanceof PointerType) {
+                pure = false;
+                return false;
+            }
+        }
+        for (BasicBlock block : basicBlocks) {
+            for (Instruction inst : block.getInsts()) {
+                if (inst.useGlobalVar()) {
+                    pure = false;
+                    return false;
+                }
+                if (inst instanceof CallInst) {
+                    pure = false;
+                    return false;
+                }
+            }
+        }
+
+        pure = true;
+        return true;
     }
 }

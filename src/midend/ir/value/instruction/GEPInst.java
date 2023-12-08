@@ -25,6 +25,28 @@ public class GEPInst extends Instruction {
     }
 
     @Override
+    public String calGVNHash() {
+        Value pointer = operands.get(0);
+        ArrayList<Value> indices = new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            indices.add(operands.get(i));
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("gep ");
+        sb.append(((PointerType) pointer.getType()).getEleType());
+        sb.append(", ");
+        sb.append(pointer.getType()).append(" ");
+        sb.append(pointer.getName()).append(", ");
+        for (int i = 0; i < indices.size(); i++) {
+            sb.append(indices.get(i).getType()).append(" ");
+            sb.append(indices.get(i).getName());
+            if (i < indices.size() - 1)
+                sb.append(", ");
+        }
+        return sb.toString();
+    }
+
+    @Override
     public String toString() {
         Value pointer = operands.get(0);
         ArrayList<Value> indices = new ArrayList<>();

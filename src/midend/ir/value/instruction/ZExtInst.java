@@ -14,6 +14,12 @@ public class ZExtInst extends Instruction {
     }
 
     @Override
+    public String calGVNHash() {
+        Value src = operands.get(0);
+        return "zext" + src.getName();
+    }
+
+    @Override
     public String toString() {
         Value src = operands.get(0);
         return tar.getName() + " = zext " + src.getType() + " " + src.getName() + " to " + tar.getType();
