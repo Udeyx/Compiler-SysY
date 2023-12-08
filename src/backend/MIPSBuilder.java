@@ -123,6 +123,17 @@ public class MIPSBuilder {
     }
 
     public Register getSymbolReg(Value value) {
+        if (val2reg.containsKey(value)) {
+            Register reg = val2reg.get(value);
+            for (int i = 0; i < vrPairs.size(); i++) {
+                VRPair vrPair = vrPairs.get(i);
+                if (vrPair.getReg().equals(reg) && vrPair.getVal().equals(value)) {
+                    vrPairs.remove(i);
+                    vrPairs.add(vrPair);
+                    break;
+                }
+            }
+        }
         return val2reg.get(value);
     }
 
