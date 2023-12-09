@@ -294,9 +294,8 @@ public class IRBuilder {
         return returnInst;
     }
 
-    public PhiInst buildPhi(Type type, Value option1, BasicBlock src1, Value option2,
-                            BasicBlock src2, Value tar) {
-        PhiInst phiInst = new PhiInst(type, option1, src1, option2, src2, tar, nameSpace.allocLvName(curFunction));
+    public PhiInst buildPhi(Type type, Value tar) {
+        PhiInst phiInst = new PhiInst(type, tar, nameSpace.allocLvName(curFunction));
         curBasicBlock.addInst(0, phiInst);
         return phiInst;
     }

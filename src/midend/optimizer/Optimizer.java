@@ -31,6 +31,8 @@ public class Optimizer {
         if (dev)
             IOer.printPhiIR();
 
+        // del zext
+        new DelZExt().run();
 
         // eliminate phi
         new EliminatePhi().run();

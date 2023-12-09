@@ -135,13 +135,10 @@ public class Mem2Reg extends Pass {
                         break;
                     }
                     defineSet.remove(x);
-//                    System.out.println("cur x: " + x.getName());
-//                    System.out.println("x.DF: " + x.getDomFrontier().stream().map(Value::getName).collect(Collectors.joining(" ")));
                     for (BasicBlock y : x.getDomFrontier()) {
                         irBuilder.setCurBasicBlock(y);
                         if (!added.contains(y)) {
-//                            System.out.println("insert phi to: " + y.getName());
-                            irBuilder.buildPhi(((PointerType) var.getType()).getEleType(), null, null, null, null, var);
+                            irBuilder.buildPhi(((PointerType) var.getType()).getEleType(), var);
                             added.add(y);
                             defineSet.add(y);
                         }

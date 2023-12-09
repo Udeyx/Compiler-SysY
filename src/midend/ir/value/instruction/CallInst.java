@@ -9,6 +9,7 @@ import midend.ir.value.GlobalVar;
 import midend.ir.value.Value;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CallInst extends Instruction {
@@ -139,13 +140,15 @@ public class CallInst extends Instruction {
 
     @Override
     public boolean canBeDel() {
-        return false;
+        Function function = (Function) operands.get(0);
+        return function.isPure() && uses.stream().noneMatch(Objects::nonNull);
     }
 
     @Override
     public void buildFIFOMIPS() {
         super.buildFIFOMIPS();
         Function function = (Function) operands.get(0);
+        System.out.println(function.getName());
         ArrayList<Value> arguments = new ArrayList<>();
         for (int i = 1; i < operands.size(); i++) {
             arguments.add(operands.get(i));

@@ -13,6 +13,10 @@ public class ZExtInst extends Instruction {
         this.operands.add(src);
     }
 
+    public Value getSrc() {
+        return operands.get(0);
+    }
+
     @Override
     public String calGVNHash() {
         Value src = operands.get(0);

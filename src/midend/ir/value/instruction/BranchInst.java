@@ -87,4 +87,10 @@ public class BranchInst extends Instruction {
     public boolean canBeDel() {
         return false;
     }
+
+    public boolean isJustJump() {
+        Value trueBlock = operands.get(1);
+        Value falseBlock = operands.get(2);
+        return trueBlock.equals(falseBlock);
+    }
 }

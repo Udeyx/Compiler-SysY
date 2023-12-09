@@ -11,8 +11,7 @@ public class PhiInst extends Instruction {
     private final Value tar;
     // operands: src1, option1, src2, option2, ......
 
-    public PhiInst(Type type, Value option1, BasicBlock src1, Value option2,
-                   BasicBlock src2, Value tar, String name) {
+    public PhiInst(Type type, Value tar, String name) {
         super(name, type);
         this.tar = tar;
         // maintain def use should be done when insert content to phi

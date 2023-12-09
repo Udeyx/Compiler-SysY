@@ -183,4 +183,12 @@ public class BasicBlock extends Value {
     public void addInstBeforeLast(Instruction inst) {
         instructions.add(instructions.size() - 1, inst);
     }
+
+    public void addInstsBeforeLast(ArrayList<Instruction> newInsts) {
+        instructions.addAll(instructions.size() - 1, newInsts);
+    }
+
+    public void addInstsAtHead(ArrayList<Instruction> newInsts) {
+        instructions.addAll(0, newInsts);
+    }
 }
